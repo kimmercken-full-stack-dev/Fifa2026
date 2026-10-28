@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Teams</title>
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1 th:text="#{top10Teams}"></h1>
+</div>
+
+
+<table aria-label="Teams overzicht">
+    <thead>
+    <tr>
+        <th th:text="#{positie}"></th>
+        <th th:text="#{teamnaam}"></th>
+        <th th:text="#{eigenaar}"></th>
+        <th th:text="#{aantalLeden}"></th>
+        <th th:text="#{totaleScore}"></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="team, iter : ${teams}">
+        <td th:text="${iter.index + 1}"></td>
+        <td th:text="${team.teamNaam}"></td>
+        <td th:text="${team.eigenaar}"></td>
+        <td th:text="${team.aantalLeden()}"></td>
+        <td th:text="${team.score}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<p th:if="${teams == null || #lists.isEmpty(teams)}" th:text="#{geenTeams}"></p>
+
+</body>
+</html>

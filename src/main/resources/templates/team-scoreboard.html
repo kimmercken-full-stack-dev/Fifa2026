@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" th:href="@{/style.css}">
+  <title>Team Scoreboard</title>
+  <style>
+
+    .meta { color:#444; margin-bottom:10px; }
+  </style>
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+  <h1 th:text="|#{scorebord} ${scoreboard.teamNaam}|"></h1>
+</div>
+
+
+<div class="meta" th:text="#{eigenaar}">
+  : <strong th:text="#{teamTotaleScore} ${scoreboard.eigenaarNickname}"></strong><br/>
+  : <strong th:text="${scoreboard.teamScore}">0</strong>
+</div>
+
+<table aria-label="Team scoreboard">
+  <thead>
+  <tr>
+    <th th:text="#{lid}"></th>
+    <th th:text="#{teamTotaleScore}"></th>
+    <th th:text="#{aantalLeden}"></th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <tr th:each="lid : ${scoreboard.leden}">
+    <td th:text="${lid.nickname}">baardmans</td>
+    <td th:text="${lid.score}">0</td>
+    <td th:text="${team.aantalLeden}"></td>
+  </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

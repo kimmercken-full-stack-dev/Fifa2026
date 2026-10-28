@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title th:text="#{wedstrijdBewerken}"></title>
+
+    <style>
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        label {
+            min-width: 180px;
+        }
+
+        input, select {
+            padding: 8px;
+            width: 220px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+
+<div class="hoofd">
+    <h1 th:text="#{wedstrijdBewerken}"></h1>
+</div>
+
+<div class="card">
+
+    <p>
+        <strong th:text="|${wedstrijd.land1} - ${wedstrijd.land2}|"></strong><br/>
+
+        <span class="muted">
+            <span th:text="|${wedstrijd.speeldatum} ${wedstrijd.starttijd}|"></span>
+            —
+            <span th:text="|${wedstrijd.locatie.stad} (${wedstrijd.locatie.stadion})|"></span>
+        </span>
+    </p>
+
+    <p class="error"
+       th:if="${editError}"
+       th:text="${editError}">
+    </p>
+
+    <form th:action="@{|/wedstrijd/${wedstrijd.wedstrijdID}/edit|}"
+          method="post"
+          th:object="${form}">
+
+        <!-- LAND 1 -->
+        <div class="row">
+            <label for="land1" th:text="|#{land1}:|"></label>
+
+            <input type="text"
+                   id="land1"
+                   th:field="*{land1}"
+                   required>
+
+            <span class="error"
+                  th:if="${#fields.hasErrors('land1')}"
+                  th:errors="*{land1}">
+            </span>
+        </div>
+
+        <!-- LAND 2 -->
+        <div class="row">
+            <label for="land2" th:text="|#{land2}:|"></label>
+
+            <input type="text"
+                   id="land2"
+                   th:field="*{land2}"
+                   required>
+
+            <span class="error"
+                  th:if="${#fields.hasErrors('land2')}"
+                  th:errors="*{land2}">
+            </span>
+        </div>
+
+        <!-- SPEELDATUM -->
+        <div class="row">
+            <label for="speeldatum" th:text="|#{speeldatum}:|"></label>
+
+            <input type="date"
+                   id="speeldatum"
+                   th:field="*{speeldatum}"
+                   required>
+
+            <span class="error"
+                  th:if="${#fields.hasErrors('speeldatum')}"
+                  th:errors="*{speeldatum}">
+            </span>
+        </div>
+
+        <!-- STARTTIJD -->
+        <div class="row">
+            <label for="starttijd" th:text="|#{starttijd}:|"></label>
+
+            <input type="time"
+                   id="starttijd"
+                   th:field="*{starttijd}"
+                   required>
+
+            <span class="error"
+                  th:if="${#fields.hasErrors('starttijd')}"
+                  th:errors="*{starttijd}">
+            </span>
+        </div>
+
+        <!-- LOCATIE -->
+        <div class="row">
+        <label for="locatieId" th:text="#{locatie}"></label>
+        <select id="locatieId" th:field="*{locatieId}" required>
+            <option value="" disabled selected th:text="#{kiesLocatie}"></option>
+            <option th:each="l : ${locaties}"
+                    th:value="${l.id}"
+                    th:text="|${l.stad} (${l.stadion})|">
+            </option>
+        </select>
+        <span class="error" th:if="${#fields.hasErrors('locatieId')}" th:errors="*{locatieId}"></span>
+    </div>
+
+        <button class="btn"
+                type="submit"
+                th:text="#{opslaan}">
+        </button>
+
+    </form>
+</div>
+
+</body>
+</html>
+

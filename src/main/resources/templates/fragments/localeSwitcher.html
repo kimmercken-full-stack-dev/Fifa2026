@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="locale-switch" >
+
+
+		<form th:action="@{/changeLocale}" method="get">
+			<select name="lang" onchange="this.form.submit()">
+
+				<option value="en" th:selected="${#locale.language.equals('en')}">English</option>
+				<option value="nl" th:selected="${#locale.language.equals('nl')}">Nederlands</option>
+			</select>
+		</form> 
+
+</div>
+</html>

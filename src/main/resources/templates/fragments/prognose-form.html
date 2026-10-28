@@ -1,0 +1,37 @@
+<!-- src/main/resources/templates/fragments/prognose-form.html -->
+<div th:fragment="prognoseForm(wedstrijd, prognoseForm, magWijzigenPrognose, eigenPrognose)">
+    <div sec:authorize="isAuthenticated()">
+        <h3 th:text="#{jouwPrognose}"></h3>
+        <div th:if="${eigenPrognose != null}">
+            <p>
+                <span th:if="${eigenPrognose != null and eigenPrognose.uitslagLand1 != null
+                          and eigenPrognose.uitslagLand2 != null}" th:text="|${eigenPrognose.uitslagLand1} - ${eigenPrognose.uitslagLand2}|"></span>
+                <span th:unless="${eigenPrognose != null
+                          and eigenPrognose.uitslagLand1 != null
+                          and eigenPrognose.uitslagLand2 != null}"
+                      th:text="#{geenPrognoseVoorWedstrijd}"></span>
+                <br/>
+                <span th:if="${magWijzigenPrognose}" class="muted" th:text="#{prognoseAanpasbaar}"></span>
+                <span th:unless="${magWijzigenPrognose}" class="error" th:text="#{prognoseGesloten}"></span>
+            </p>
+        </div>
+
+        <form th:if="${magWijzigenPrognose}"
+              th:action="@{/prognose}"
+              method="post"
+              th:object="${prognoseForm}">
+            <input type="hidden" th:field="*{wedstrijdId}" />
+            <div class="row">
+                <label th:text="|${wedstrijd.land1}|" for="uitslagLand1">:</label>
+                <input id="uitslagLand1" type="number" min="0" max="99" th:field="*{uitslagLand1}" required>
+                <span class="error" th:if="${#fields.hasErrors('uitslagLand1')}" th:errors="*{uitslagLand1}"></span>
+            </div>
+            <div class="row">
+                <label th:text="|${wedstrijd.land2}|" for="uitslagLand2">:</label>
+                <input id="uitslagLand2" type="number" min="0" max="99" th:field="*{uitslagLand2}" required>
+                <span class="error" th:if="${#fields.hasErrors('uitslagLand2')}" th:errors="*{uitslagLand2}"></span>
+            </div>
+            <button class="btn" type="submit" th:text="#{opslaan}">Opslaan</button>
+        </form>
+    </div>
+</div>

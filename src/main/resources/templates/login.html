@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Login Page</title>
+
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1>Spring Security Custom Login Form (Annotation)</h1>
+    <h3>Login with Username and Password</h3>
+</div>
+
+<div id="login-box">
+
+
+
+    <div th:if="${param.error}" class="error">Invalid username or password</div>
+
+    <div th:if="${param.logout}" class="msg">You've been logged out</div>
+
+    <form th:action="@{/login}" method="post">
+        <table>
+            <tr>
+                <td>User:</td>
+                <td><input type='text' name='username' value='' autofocus></td>
+            </tr>
+            <tr>
+                <td>Password:</td>
+                <td><input type='password' name='password' /></td>
+            </tr>
+            <tr>
+                <td colspan='2'><button name="submit" type="submit">Login</button></td>
+            </tr>
+        </table>
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    </form>
+</div>
+
+</body>
+</html>

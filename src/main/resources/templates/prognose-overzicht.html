@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Mijn prognoses</title>
+
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1 th:text="#{mijnPrognoses}"></h1>
+    <p th:text="#{progInfo}" class="muted"></p>
+</div>
+
+<table aria-label="Prognoses overzicht" th:if="${prognoses != null && !#lists.isEmpty(prognoses)}">
+    <thead>
+    <tr>
+        <th th:text="#{wedstrijd}"></th>
+        <th th:text="#{speeldatum}"></th>
+        <th th:text="#{starttijd}"></th>
+        <th th:text="|#{stad} - #{stadion}|"></th>
+        <th th:text="#{prognose}"></th>
+        <th th:text="#{winnaar}"></th>
+        <th th:text="#{acties}"></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="p : ${prognoses}">
+        <td th:text="|${p.wedstrijd.land1} - ${p.wedstrijd.land2}|">België - Nederland</td>
+        <td th:text="${p.wedstrijd.speeldatum}">2026-04-18</td>
+        <td th:text="${p.wedstrijd.starttijd}">16:00</td>
+        <td th:text="|${p.wedstrijd.locatie.stad} (${p.wedstrijd.locatie.stadion})|">Brussel (Koning Boudewijn)</td>
+        <td th:text="|${p.uitslagLand1 ?: ''} - ${p.uitslagLand2 ?: ''}|">2 - 1</td>
+        <td th:text="${p.winnaar != null
+              ? (p.winnaar == 'GELIJKSPEL' ? 'Gelijkspel' : p.winnaar)
+              : (p.uitslagLand1 == null or p.uitslagLand2 == null
+                    ? ''
+                    : (p.uitslagLand1 > p.uitslagLand2 ? p.wedstrijd.land1
+                       : (p.uitslagLand2 > p.uitslagLand1 ? p.wedstrijd.land2 : 'Gelijkspel')))}">
+        </td>
+        <td>
+
+
+            <form th:action="@{|/prognoses/${p.id}/delete|}" method="post"
+                  th:attr="onsubmit=|return confirm('#{confirmDeletePrognose}');|"
+                  style="display:inline-flex;">
+                <button class="btn" type="submit" th:text="#{verwijder}"></button>
+            </form>
+            <a class="btn"
+               style="display:inline-flex; align-items:center; justify-content:center;"
+               th:text="#{pasAan}"
+               th:if="${canEditPrognoseMap != null and canEditPrognoseMap[p.id]}"
+               th:href="@{|/prognose/${p.wedstrijd.wedstrijdID}|}"></a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<p th:if="${prognoses == null || #lists.isEmpty(prognoses)}" th:text="#{geenPrognoses}"></p>
+
+</body>
+</html>

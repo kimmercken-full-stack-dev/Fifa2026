@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+
+<body>
+
+<div th:replace="~{fragments/nav :: topnav}"></div>
+
+<div class="hoofd">
+    <h1 th:text="|${wedstrijd.land1} - ${wedstrijd.land2}|"></h1>
+</div>
+
+<div class="card detail-info">
+
+    <p>
+        <strong th:text="|${wedstrijd.land1} - ${wedstrijd.land2}|"></strong>
+        <br/>
+
+        <span class="muted">
+
+            <span th:text="|${#temporals.format(
+                    wedstrijd.speeldatum,
+                    #messages.msg('date.format.pattern')
+            )} ${wedstrijd.starttijd}|"></span>
+
+            —
+
+            <span th:text="|${wedstrijd.locatie.stad} (${wedstrijd.locatie.stadion})|"></span>
+
+        </span>
+    </p>
+
+    <!-- ========================================= -->
+    <!-- UITSLAG BESTAAT -->
+    <!-- ========================================= -->
+
+    <div th:if="${wedstrijd.uitslagLand1 != null
+              && wedstrijd.uitslagLand2 != null}">
+
+        <p>
+            <strong th:text="|#{eindscore}:|"></strong>
+
+            <span th:text="|${wedstrijd.uitslagLand1} - ${wedstrijd.uitslagLand2}|"></span>
+
+            <br/>
+
+            <span th:text="|#{winnaar}:|"></span>
+            <span th:text="${wedstrijd.winnaar}"></span>
+        </p>
+
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+
+            <!-- ADMIN -->
+            <span sec:authorize="hasRole('ADMIN')">
+
+                <a class="btn"
+                   th:href="@{|/wedstrijd/${wedstrijd.wedstrijdID}/edit-uitslag|}">
+                    <span th:text="#{wijzigUitslag}"></span>
+                </a>
+
+            </span>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- UITSLAG NOG NIET BESCHIKBAAR -->
+    <!-- ========================================= -->
+
+    <div th:if="${wedstrijd.uitslagLand1 == null
+              || wedstrijd.uitslagLand2 == null}">
+
+        <p>
+            <em>
+                <span th:text="#{officieleEindscoreNietBekend}"></span>
+            </em>
+        </p>
+
+        <div style="display:flex;
+                    gap:10px;
+                    align-items:center;
+                    flex-wrap:wrap;">
+
+            <!-- ================================= -->
+            <!-- VUL UITSLAG IN -->
+            <!-- Enkel zichtbaar NA 2 uur -->
+            <!-- ================================= -->
+
+            <span sec:authorize="hasRole('ADMIN')"
+                  th:if="${magUitslagInvullen}">
+
+                <a class="btn"
+                   th:href="@{|/wedstrijd/${wedstrijd.wedstrijdID}/edit-uitslag|}">
+                    <span th:text="#{vulUitslagIn}"></span>
+                </a>
+
+            </span>
+
+            <!-- ================================= -->
+            <!-- BEWERKEN -->
+            <!-- ================================= -->
+
+            <span sec:authorize="hasRole('ADMIN')">
+
+                <a class="btn"
+                   th:href="@{|/wedstrijd/${wedstrijd.wedstrijdID}/edit|}">
+                    <span th:text="#{bewerken}"></span>
+                </a>
+
+            </span>
+
+            <!-- ================================= -->
+            <!-- VERWIJDEREN -->
+            <!-- ================================= -->
+            <span sec:authorize="hasRole('ADMIN')">
+
+    <form th:action="@{|/wedstrijd/${wedstrijd.wedstrijdID}/delete|}"
+          method="post"
+          style="display:inline; margin:0;">
+
+        <button class="btn-danger"
+                type="submit"
+                th:text="#{verwijder}"
+                th:attr="onclick=|return confirm('#{confirmDeleteWedstrijd}');|">
+
+            Verwijderen
+
+        </button>
+
+    </form>
+
+</span>
+
+        </div>
+
+    </div>
+
+    <p th:if="${stadionCapaciteit != null}">
+        <strong th:text="|#{capaciteit}:|"></strong>
+        <span th:text="${stadionCapaciteit}"></span>
+    </p>
+
+    <!-- ========================================= -->
+    <!-- PROGNOSE FRAGMENT -->
+    <!-- ========================================= -->
+
+    <div th:replace="
+        fragments/prognose-form
+        :: prognoseForm(
+            ${wedstrijd},
+            ${prognoseForm},
+            ${magWijzigenPrognose},
+            ${eigenPrognose}
+        )">
+    </div>
+
+</div>
+
+</body>
+</html>

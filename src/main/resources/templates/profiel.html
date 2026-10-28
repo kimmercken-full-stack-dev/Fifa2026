@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Mijn profiel</title>
+    <style>
+        .row { display: grid; grid-template-columns: 160px 1fr; gap: 10px; padding: 6px 0; }
+        .label { color: #666; }
+    </style>
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1 th:text="#{mijnProfiel}"></h1>
+</div>
+
+
+
+<div class="card">
+    <div class="row">
+        <div class="label" th:text="#{gebruikersnaam}"></div>
+        <div th:text="${gebruiker.username}"></div>
+    </div>
+
+    <div class="row">
+        <div class="label" th:text="#{voornaam}"></div>
+        <div th:text="${gebruiker.voornaam}"></div>
+    </div>
+
+    <div class="row">
+        <div class="label" th:text="#{familienaam}"></div>
+        <div th:text="${gebruiker.familienaam}"></div>
+    </div>
+
+    <div class="row">
+        <div class="label" th:text="#{rol}">Rol</div>
+        <div th:text="${gebruiker.rol}">GEBRUIKER</div>
+    </div>
+</div>
+
+</body>
+</html>

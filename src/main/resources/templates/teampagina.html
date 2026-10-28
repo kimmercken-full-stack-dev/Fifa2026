@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title th:text="|Team: ${team.teamNaam}|">Teampagina</title>
+    <style>
+
+        .owner { font-weight: bold; }
+        .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; background:#ffe08a; margin-left:8px; }
+        .danger { border-color:#c00; color:#c00; background:#fff; }
+
+        form { margin: 0; display:inline; }
+        input { padding:8px; }
+    </style>
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1 th:text="${team.teamNaam}"></h1>
+</div>
+
+<div class="card">
+    <div class="team-info">
+        <span th:text="#{eigenaar}"></span>:
+        <span class="owner"
+              th:text="${team.eigenaar != null ? team.eigenaar.username : '-'}">-</span>
+    </div>
+
+    <div class="team-info" style="margin-top:8px;">
+        <span th:text="#{teamTotaleScore}"></span>:
+        <strong th:text="${team.score}"></strong>
+    </div>
+</div>
+
+<!-- Leden uitnodigen (enkel eigenaar) -->
+<div class="card" th:if="${isOwner}">
+    <h3 class="invite" th:text="#{uitnodigen}"></h3>
+
+    <div class="invite">
+        <span th:text="#{invitecode}"></span>:
+        <strong th:text="${team.invitecode}"></strong>
+        <div class="muted" th:text="#{infoInviteCode}"></div>
+    </div>
+
+    <div style="margin-top:10px;">
+        <form th:action="@{/teams/{teamId}/invite/regenerate(teamId=${team.teamID})}" method="post">
+            <button class="btn" type="submit" th:text="#{invitecodeHergenereren}"></button>
+        </form>
+    </div>
+</div>
+
+<!-- Ledenlijst -->
+<div class="card">
+    <h3 class="members" th:text="#{leden}"></h3>
+
+    <table aria-label="Teamleden">
+        <thead>
+        <tr>
+            <th th:text="#{lid}"></th>
+
+            <th th:text="#{persoonlijkeScore}"></th>
+            <th th:text="#{actie}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="lid : ${team.teamleden}">
+            <td th:classappend="${team.eigenaar != null and lid.id == team.eigenaar.id} ? 'owner' : ''">
+                <span th:text="${lid.username}"></span>
+                <span class="badge" th:if="${team.eigenaar != null and lid.id == team.eigenaar.id}" th:text="#{eigenaar}"></span>
+            </td>
+
+            <td th:text="${lid.score}">0</td>
+            <td>
+                <!-- verwijderen enkel owner en niet eigenaar -->
+                <span th:if="${isOwner}">
+                    <form th:if="${team.eigenaar == null or lid.id != team.eigenaar.id}"
+                          th:action="@{/teams/{teamId}/remove/{userId}(teamId=${team.teamID}, userId=${lid.id})}"
+                          method="post">
+                        <button class="btn danger" type="submit" th:text="#{verwijder}"></button>
+                    </form>
+                    <span th:if="${team.eigenaar != null and lid.id == team.eigenaar.id}">-</span>
+                </span>
+
+                <span th:if="${!isOwner}">-</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

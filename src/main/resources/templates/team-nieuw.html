@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Nieuw team</title>
+    <style>
+        .field { margin-top: 10px; }
+        input { padding: 8px; width: 100%; box-sizing: border-box; }
+
+    </style>
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+
+
+<div class="card">
+    <form th:action="@{/teams/nieuw}" th:object="${form}" method="post">
+
+        <div class="field">
+            <label for="teamNaam" th:text="#{teamnaam}"></label>
+            <input id="teamNaam" type="text" th:field="*{teamNaam}" placeholder="bv. The Goal Getters" />
+            <div class="error" th:if="${#fields.hasErrors('teamNaam')}" th:errors="*{teamNaam}"></div>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+            <button class="btn" type="submit" th:text="#{maakTeam}"></button>
+            <a class="btn" th:href="@{/mijn-teams}" th:text="#{annuleren}"></a>
+        </div>
+
+    </form>
+</div>
+
+<!-- Mooie popup na aanmaken -->
+<div id="createdModal" class="modal-backdrop" th:if="${param.created != null}">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+            <h2 id="modalTitle" class="modal-title" th:text="#{teamAangemaakt}"></h2>
+            <button class="xbtn" type="button" onclick="closeModal()" th:aria-label="#{sluiten}">×</button>
+        </div>
+
+        <div class="modal-body">
+            <p>
+                <span th:text="#{jeTeam}"></span>
+                <strong th:text="${param.name[0]}">TEAMNAAM</strong>
+                <span th:text="#{teamSuccesvolAangemaakt}"></span>
+            </p>
+            <p class="muted" th:text="#{teamTerugTeVinden}"></p>
+        </div>
+
+        <div class="modal-actions">
+            <a class="btn"  type="button" onclick="closeModal()" th:href="@{/mijn-teams}" th:text="#{gaNaarMijnTeams}"></a>
+        </div>
+    </div>
+</div>
+
+<script th:if="${param.created != null}">
+    function closeModal() {
+        const el = document.getElementById('createdModal');
+        if (el) el.style.display = 'none';
+        // haal queryparams weg zodat de modal niet opnieuw komt bij refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    (function () {
+        const el = document.getElementById('createdModal');
+        if (el) el.style.display = 'flex';
+    })();
+</script>
+
+</body>
+</html>

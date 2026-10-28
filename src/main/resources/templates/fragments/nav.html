@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nl">
+<div th:fragment="topnav">
+    <div class="nav">
+        <div  th:replace="~{fragments/localeSwitcher :: locale-switch}"></div>
+        <!-- Altijd zichtbaar (ook anoniem) -->
+        <a class="btn" th:text="#{wedstrijden}" th:href="@{/wedstrijd}"></a>
+        <!-- Admin -->
+        <a class="btn" th:text="#{nieuweWedstrijd}" th:href="@{/wedstrijd/nieuw}" sec:authorize="hasRole('ADMIN')"></a>
+
+        <!-- Altijd zichtbaar (ook anoniem) -->
+        <a class="btn" th:text="#{top10Teams}" th:href="@{/teams}"></a>
+
+        <span class="spacer"></span>
+        <div sec:authorize="isAuthenticated()" class="user-info">
+            <strong sec:authentication="name"></strong>
+
+            <span sec:authorize="hasRole('ADMIN')">
+        | ADMIN
+    </span>
+
+            <span sec:authorize="hasRole('USER')">
+        | USER
+    </span>
+
+        </div>
+        <!-- Alleen anoniem -->
+        <a class="btn" th:text="#{inloggen}" th:href="@{/login}" sec:authorize="isAnonymous()"></a>
+        <a class="btn" th:text="#{registreren}" th:href="@{/registreer}" sec:authorize="isAnonymous()"></a>
+
+        <!-- Alleen ingelogd -->
+        <a class="btn" th:text="#{prognoses}" th:href="@{/prognoses}" sec:authorize="isAuthenticated()">Prognoses</a>
+        <a class="btn" th:text="#{mijnTeams}" th:href="@{/mijn-teams}" sec:authorize="isAuthenticated()"></a>
+        <a class="btn" th:text="#{profiel}" th:href="@{/gebruiker}" sec:authorize="isAuthenticated()"></a>
+
+
+
+        <form sec:authorize="isAuthenticated()"  th:action="@{/logout}" method="post">
+            <button th:text="#{uitloggen}" class="btn" type="submit"></button>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

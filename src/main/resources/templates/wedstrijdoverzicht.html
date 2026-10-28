@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+
+
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+
+<div class="wedstrijd-succes" th:if="${successMatchCreated}" th:text="#{nieuweWedstrijdSucces}">
+
+</div>
+
+<div class="wedstrijd-update-succes" th:if="${successMatchUpdated}" th:text="#{wedstrijdEditSucces}">
+
+</div>
+
+<div class="hoofd">
+
+
+    <h1 th:text="#{wedstrijden}"></h1>
+</div>
+
+
+<table>
+    <thead>
+    <tr>
+        <th th:text="#{land1}"></th>
+        <th th:text="#{land2}"></th>
+        <th th:text="#{speeldatum}"></th>
+        <th th:text="#{starttijd}"></th>
+        <th th:text="|#{stad} - #{stadion}|"></th>
+        <th th:text="|#{uitslagLand1} - #{uitslagLand2}|"></th>
+        <th th:text="#{winnaar}"></th>
+
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="wedstrijd : ${allWedstrijden}"
+        th:if="${#authentication.authenticated}"
+        class="clickable-row"
+        th:attr="data-href=@{|/wedstrijd/${wedstrijd.wedstrijdID}|}"
+        style="cursor: pointer;">
+        <td th:text="${wedstrijd.land1}"></td>
+        <td th:text="${wedstrijd.land2}"></td>
+        <td th:attr="data-format=#{date.format.patternjs}"
+            th:text="${wedstrijd.speeldatum != null
+        ? #temporals.format(wedstrijd.speeldatum, #messages.msg('date.format.pattern'))
+        : ''}">
+        </td>
+        <td th:text="${wedstrijd.starttijd != null ? #dates.format(wedstrijd.starttijd, 'HH:mm') : ''}"></td>
+        <td th:text="|${wedstrijd.stad} - ${wedstrijd.stadion}|"></td>
+        <td th:text="|${wedstrijd.uitslagLand1 != null ? wedstrijd.uitslagLand1 : ''} - ${wedstrijd.uitslagLand2 != null ? wedstrijd.uitslagLand2 : ''}|"></td>
+        <td th:text="${wedstrijd.winnaar != null ? wedstrijd.winnaar : ''}"></td>
+    </tr>
+    <tr th:each="wedstrijd : ${allWedstrijden}"
+        th:unless="${#authentication.authenticated}">
+        <td th:text="${wedstrijd.land1}"></td>
+        <td th:text="${wedstrijd.land2}"></td>
+        <td th:text="${wedstrijd.speeldatum != null ? #temporals.format(wedstrijd.speeldatum, 'dd/MM/yyyy') : ''}"></td>
+        <td th:text="${wedstrijd.starttijd != null ? #dates.format(wedstrijd.starttijd, 'HH:mm') : ''}"></td>
+        <td th:text="|${wedstrijd.stad} - ${wedstrijd.stadion}|"></td>
+        <td th:text="|${wedstrijd.uitslagLand1 != null ? wedstrijd.uitslagLand1 : ''} - ${wedstrijd.uitslagLand2 != null ? wedstrijd.uitslagLand2 : ''}|"></td>
+        <td th:text="${wedstrijd.winnaar != null ? wedstrijd.winnaar : ''}"></td>
+    </tr>
+    </tbody>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("tr.clickable-row").forEach(function(row){
+                row.addEventListener("click", function () {
+                    var url = row.getAttribute("data-href");
+                    if(url) { window.location.href = url; }
+                });
+            });
+        });
+    </script>
+</table>
+
+<p th:if="${allWedstrijden == null || #lists.isEmpty(allWedstrijden)}">Geen wedstrijden gevonden.</p>
+
+</body>
+</html>

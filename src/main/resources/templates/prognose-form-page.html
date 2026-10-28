@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Prognose</title>
+</head>
+<body>
+
+<div th:replace="~{fragments/nav :: topnav}"></div>
+
+<div class="card">
+    <div th:replace="~{fragments/prognose-form :: prognoseForm(
+        ${wedstrijd},
+        ${prognoseForm},
+        ${magWijzigenPrognose},
+        ${eigenPrognose}
+    )}">
+    </div>
+</div>
+
+</body>
+</html>

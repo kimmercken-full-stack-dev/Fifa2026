@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title>Uitslag ingeven</title>
+    <style>
+        .row { display: flex; gap: 12px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+        label { min-width: 180px; }
+        input { padding: 8px; width: 120px; }
+
+    </style>
+</head>
+<body>
+
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1 th:text="#{geefUitslag}"></h1>
+</div>
+
+
+<div class="card">
+    <p>
+        <strong th:text="|${wedstrijd.land1} - ${wedstrijd.land2}|"></strong><br/>
+        <span class="muted">
+            <span th:text="|${wedstrijd.speeldatum} ${wedstrijd.starttijd}|"></span>
+            —
+            <span th:text="|${wedstrijd.locatie.stad} (${wedstrijd.locatie.stadion})|"></span>
+        </span>
+    </p>
+
+    <p class="error" th:if="${editError}" th:text="${editError}"></p>
+
+    <form th:action="@{|/wedstrijd/${wedstrijd.wedstrijdID}/edit-uitslag|}" method="post" th:object="${form}">
+        <div class="row">
+            <label th:text="|${wedstrijd.land1} #{uitslag}:|"></label>
+            <input type="number" min="0" max="99" th:field="*{uitslagLand1}" required>
+            <span class="error" th:if="${#fields.hasErrors('uitslagLand1')}" th:errors="*{uitslagLand1}"></span>
+        </div>
+
+        <div class="row">
+            <label th:text="|${wedstrijd.land2} #{uitslag}:|">Land 2 uitslag:</label>
+            <input type="number" min="0" max="99" th:field="*{uitslagLand2}" required>
+            <span class="error" th:if="${#fields.hasErrors('uitslagLand2')}" th:errors="*{uitslagLand2}"></span>
+        </div>
+
+        <p class="muted" style="margin-top: 12px;" th:text="#{infoBepaalWinnaar}"></p>
+
+        <button class="btn" type="submit" th:text="#{opslaan}"></button>
+    </form>
+</div>
+
+</body>
+</html>

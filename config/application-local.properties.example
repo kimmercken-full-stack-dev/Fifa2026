@@ -1,0 +1,7 @@
+# Kopieer naar config/application-local.properties (uitgesloten door Git).
+# Gebruik een NIEUWE demodatabase: het dev-profiel wist de tabellen bij elke start.
+spring.profiles.active=dev
+spring.datasource.url=jdbc:mysql://localhost:3306/fifa2026_demo?serverTimezone=UTC
+spring.datasource.username=CHANGE_ME
+spring.datasource.password=CHANGE_ME
+app.demo-password=CHANGE_ME

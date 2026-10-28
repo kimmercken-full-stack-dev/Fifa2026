@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <title>Page Not Found</title>
+</head>
+<body>
+
+<div class="error-container">
+    <div class="error-content">
+        <h1>404</h1>
+        <p th:text="#{geenPagina1}"></p>
+        <p th:text="#{geenPagina2}"></p>
+        <a th:text="#{geenPagina3}" th:href="@{/}"></a>
+    </div>
+</div>
+
+</body>
+</html>

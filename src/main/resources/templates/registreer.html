@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <title >Registreren</title>
+    <style>
+        .row { margin: 10px 0; display: grid; gap: 6px; }
+        input { padding: 8px; }
+    </style>
+</head>
+<body>
+<!-- NAV FRAGMENT (login/logout staat nu op elke pagina waar dit fragment gebruikt wordt) -->
+<div th:replace="~{fragments/nav :: topnav}"></div>
+<div class="hoofd">
+    <h1 th:text="#{registreren}"></h1>
+</div>
+
+
+<div class="card">
+    <p class="error" th:if="${registerError}" th:text="${registerError}"></p>
+
+    <form th:action="@{/registreer}" method="post" th:object="${form}">
+        <div class="row">
+            <label for="voornaam" th:text="#{voornaam}"></label>
+            <input id="voornaam" type="text" th:field="*{voornaam}" required>
+            <span class="error" th:if="${#fields.hasErrors('voornaam')}" th:errors="*{voornaam}"></span>
+        </div>
+
+        <div class="row">
+            <label for="familienaam" th:text="#{familienaam}"></label>
+            <input id="familienaam" type="text" th:field="*{familienaam}" required>
+            <span class="error" th:if="${#fields.hasErrors('familienaam')}" th:errors="*{familienaam}"></span>
+        </div>
+
+        <div class="row">
+            <label for="username" th:text="#{gebruikersnaam}"></label>
+            <input id="username" type="text" th:field="*{username}" required>
+            <span class="error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+        </div>
+
+        <div class="row">
+            <label for="password" th:text="#{wachtwoord}"></label>
+            <input id="password" type="password" th:field="*{password}" required>
+            <span class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+        </div>
+        <div class="row">
+            <label for="confirmPassword" th:text="#{bevestigWachtwoord}"></label>
+            <input id="confirmPassword" type="password" th:field="*{confirmPassword}" required>
+            <span class="error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+        </div>
+        <p class="error" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+        <button class="btn" type="submit" th:text="#{maakAccount}"></button>
+    </form>
+</div>
+
+</body>
+</html>
