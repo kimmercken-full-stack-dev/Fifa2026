@@ -205,136 +205,25 @@ public class WedstrijdService {
 
     }
 
-    /** Zoekt betrokken gebruikers en berekent hun totale score opnieuw uit al hun gespeelde voorspellingen. */
+    /** Haalt totalen in één query op en bewaart de betrokken gebruikers samen. */
     private void herberekenScoresVoorWedstrijd(long wedstrijdId) {
-
-        List<Prognose> prognosesVoorWedstrijd = prognoseRepository.findAllByWedstrijd_WedstrijdID(
-                        wedstrijdId);
-
-        Set<Long> gebruikerIds = prognosesVoorWedstrijd.stream()
-                        .map(p -> p.getGebruiker().getId())
-                        .collect(Collectors.toSet());
-
-        for (Long gebruikerId : gebruikerIds) {
-
-            int totaal = herberekenScoreVoorGebruiker(gebruikerId);
-
-            Gebruiker g = gebruikerRepository.findById(gebruikerId)
-                            .orElseThrow(() -> new IllegalArgumentException(
-                                    messageSource.getMessage("error.gebruiker.nietgevonden",
-                                            new Object[]{gebruikerId}, Locale.getDefault())));
-
-            g.setScore(totaal);
-            gebruikerRepository.save(g);
+    // Haal de puntwaarden uit de i18n-bestanden op.
+    // De uitslag en gebruikersscores worden binnen dezelfde transactie opgeslagen.
+        var scores = prognoseRepository.berekenScoresVoorWedstrijd(
+                wedstrijdId, score("score.exact"), score("score.winnaar"),
+                score("score.bonus.exact.uniek"), score("score.bonus.winnaar.uniek"));
+        if (scores.isEmpty()) {
+            // Zonder betrokken prognoses hoeven we geen gebruikers op te halen.
+            return;
         }
-    }
-
-    /** Telt punten op voor prognoses waarvan de wedstrijd beide definitieve scores heeft. */
-    private int herberekenScoreVoorGebruiker(long gebruikerId) {
-
-        List<Prognose> prognoses = prognoseRepository.findAllByGebruiker_Id(gebruikerId);
-        int totaal = 0;
-        for (Prognose p : prognoses) {
-            Wedstrijd w = p.getWedstrijd();
-
-            if (w == null) {
-                continue;
-            }
-            if (w.getUitslagLand1() == null || w.getUitslagLand2() == null) {
-                continue;
-            }
-            totaal += berekenPunten(p, w);
-        }
-        return totaal;
-    }
-
-    /**
-     * Telt basispunten en bonussen per team op, met maximaal 12 punten per prognose.
-     * De puntwaarden staan momenteel in de i18n-bundels onder de sleutels score.*.
-     */
-    private int berekenPunten(Prognose p, Wedstrijd w) {
-
-        if (p.getUitslagLand1() == null || p.getUitslagLand2() == null) {
-            return 0;
-        }
-
-        int punten = 0;
-
-        boolean exact = p.getUitslagLand1().equals(w.getUitslagLand1())
-                        && p.getUitslagLand2().equals(w.getUitslagLand2());
-
-        String echteWinnaar = winnaarVan(
-                        w.getLand1(),
-                        w.getLand2(),
-                        w.getUitslagLand1(),
-                        w.getUitslagLand2());
-
-        String voorspeldeWinnaar = winnaarVan(
-                        w.getLand1(),
-                        w.getLand2(),
-                        p.getUitslagLand1(),
-                        p.getUitslagLand2());
-
-        boolean winnaarCorrect = echteWinnaar.equals(
-                        voorspeldeWinnaar);
-
-        if (exact) {
-            punten += score("score.exact");
-        }
-
-        if (winnaarCorrect && !exact) {
-            punten += score("score.winnaar");
-        }
-
-        for (var team : p.getGebruiker().getTeams()) {
-            if (exact && heeftEnigeExacteScoreBinnenTeam(team, w, p)) {
-                punten += score("score.bonus.exact.uniek");
-            }
-
-            if (!exact && winnaarCorrect && heeftEnigeJuisteWinnaarBinnenTeam(team, w, p, echteWinnaar)) {
-                punten += score("score.bonus.winnaar.uniek");
-            }
-        }
-        return Math.min(punten, 12);
-    }
-
-    /** Telt correcte exacte voorspellingen van teamleden en controleert of er precies een is. */
-    private boolean heeftEnigeExacteScoreBinnenTeam(Team team, Wedstrijd wedstrijd, Prognose dezePrognose) {
-
-        List<Prognose> voorspellingen = prognoseRepository.findAllByWedstrijd_WedstrijdID(wedstrijd.getWedstrijdID());
-
-        long aantal = voorspellingen.stream()
-                        .filter(p -> p.getGebruiker().getTeams().contains(team))
-                        .filter(p -> p.getUitslagLand1() != null && p.getUitslagLand2() != null)
-                        .filter(p -> p.getUitslagLand1().equals(wedstrijd.getUitslagLand1())
-                                && p.getUitslagLand2().equals(wedstrijd.getUitslagLand2())).count();
-
-        return aantal == 1;
-    }
-
-    /** Controleert of precies een teamlid de juiste winnaar of het gelijkspel voorspelde. */
-    private boolean heeftEnigeJuisteWinnaarBinnenTeam(
-            Team team,
-            Wedstrijd wedstrijd,
-            Prognose dezePrognose,
-            String echteWinnaar
-    ) {
-
-        List<Prognose> voorspellingen = prognoseRepository.findAllByWedstrijd_WedstrijdID(wedstrijd.getWedstrijdID());
-
-        long aantal = voorspellingen.stream()
-                        .filter(p -> p.getGebruiker().getTeams().contains(team))
-                        .filter(p -> p.getUitslagLand1() != null && p.getUitslagLand2() != null)
-                        .filter(p -> {String winnaar = winnaarVan(
-                                            wedstrijd.getLand1(),
-                                            wedstrijd.getLand2(),
-                                            p.getUitslagLand1(),
-                                            p.getUitslagLand2());
-
-                            return winnaar.equals(echteWinnaar);
-                        }).count();
-
-        return aantal == 1;
+        var totalen = scores.stream().collect(Collectors.toMap(
+                PrognoseRepository.GebruikerScore::getGebruikerId,
+                s -> Math.toIntExact(s.getTotaal())));
+        // Haal alle betrokken gebruikers samen op, in plaats van findById in een lus.
+        var gebruikers = gebruikerRepository.findAllById(totalen.keySet());
+        gebruikers.forEach(g -> g.setScore(totalen.get(g.getId())));
+        // Bewaar de gebruikers; Hibernate verstuurt de updates in batches van maximaal 50.
+        gebruikerRepository.saveAll(gebruikers);
     }
 
     private int score(String key) {
