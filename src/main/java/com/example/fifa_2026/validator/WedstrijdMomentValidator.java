@@ -16,7 +16,6 @@ import java.util.Locale;
 
 /**
  * Valideert de vaste opdrachtperiode in 2026 en de minimale voorbereidingstijd.
- * De controle gebruikt de systeemklok; dit is geen jaarlijks doorschuivend toernooi.
  */
 @Component
 public class WedstrijdMomentValidator
@@ -76,7 +75,7 @@ public class WedstrijdMomentValidator
             return false;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(context.getClockProvider().getClock());
         LocalDateTime wedstrijdMoment = LocalDateTime.of(speeldatum, starttijd);
 
         // verleden

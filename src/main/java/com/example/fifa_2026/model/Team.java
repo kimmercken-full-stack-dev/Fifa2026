@@ -3,15 +3,15 @@ package com.example.fifa_2026.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Entity
 @Table(
         name = "team",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = "invitecode"),
+                @UniqueConstraint(name = "uk_team_invitecode", columnNames = "invitecode"),
                 @UniqueConstraint(columnNames = "teamNaam")
         }
 )
@@ -21,12 +21,13 @@ import java.util.concurrent.ThreadLocalRandom;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Team {
+    private static final SecureRandom UITNODIGING_RANDOM = new SecureRandom();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long teamID;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private Long invitecode;
 
     @Column(nullable = false, unique = true)
@@ -53,9 +54,12 @@ public class Team {
     @PrePersist
     private void generateInvitecodeIfMissing() {
         if (this.invitecode == null) {
-            long code = ThreadLocalRandom.current().nextLong(10_000_000L, 100_000_000L); // 8 cijfers
-            this.invitecode = code;
+            this.invitecode = nieuweUitnodigingscode();
         }
+    }
+
+    public static long nieuweUitnodigingscode() {
+        return UITNODIGING_RANDOM.nextInt(10_000_000, 100_000_000);
     }
 
     /** Som van de persoonlijke scores van alle teamleden */

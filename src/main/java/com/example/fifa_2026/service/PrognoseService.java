@@ -12,6 +12,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +32,7 @@ public class PrognoseService {
     private final WedstrijdRepository wedstrijdRepository;
     private final GebruikerRepository gebruikerRepository;
     private final MessageSource messageSource;
+    private final Clock clock;
 
     // --- voor form ---
     public Wedstrijd getWedstrijdOrThrow(Long wedstrijdId) {
@@ -58,7 +60,7 @@ public class PrognoseService {
 
         LocalDateTime deadline = prognoseDeadline(start);
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         if (!now.isBefore(deadline)) {
 

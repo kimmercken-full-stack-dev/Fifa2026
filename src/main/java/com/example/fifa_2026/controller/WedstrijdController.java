@@ -19,6 +19,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.Clock;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -33,6 +34,7 @@ public class WedstrijdController {
     private final PrognoseService prognoseService;
     private final CurrentUserService currentUserService;
     private final LocatieService locatieService;
+    private final Clock clock;
 
     // 1. Overzicht (voor iedereen)
     /** Bouwt het openbare overzicht met tijdsafhankelijke acties en, indien ingelogd, eigen prognoses. */
@@ -42,7 +44,7 @@ public class WedstrijdController {
         model.addAttribute("allWedstrijden", wedstrijden);
         Map<Long, Boolean> canEditMap = new java.util.HashMap<>();
         Map<Long, Boolean> canCreatePrognoseMap = new java.util.HashMap<>();
-        var now = LocalDateTime.now();
+        var now = LocalDateTime.now(clock);
         for (var w : wedstrijden) {
             var start = LocalDateTime.of(w.speeldatum(), w.starttijd().toLocalTime());
             canEditMap.put(w.wedstrijdID(), !now.isBefore(start.plusHours(2)));
@@ -84,8 +86,8 @@ public class WedstrijdController {
         LocalDateTime aftrap = LocalDateTime.of(
                         wedstrijd.getSpeeldatum(),
                         wedstrijd.getStarttijd().toLocalTime());
-        boolean magWijzigenPrognose = LocalDateTime.now().isBefore(aftrap.minusHours(1));
-        boolean magUitslagInvullen = LocalDateTime.now().isAfter(aftrap.plusHours(2));
+        boolean magWijzigenPrognose = LocalDateTime.now(clock).isBefore(aftrap.minusHours(1));
+        boolean magUitslagInvullen = LocalDateTime.now(clock).isAfter(aftrap.plusHours(2));
         Integer stadionCapaciteit = getStadionCapaciteit(wedstrijd);
         model.addAttribute("eigenPrognose", eigenPrognose);
         model.addAttribute("prognoseForm", prognoseForm);
@@ -198,7 +200,7 @@ public class WedstrijdController {
                              RedirectAttributes redirectAttributes)  {
         var wedstrijd = wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId);
         LocalDateTime start = LocalDateTime.of(wedstrijd.getSpeeldatum(), wedstrijd.getStarttijd().toLocalTime());
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         if (now.isBefore(start.plusHours(2))) {
             bindingResult.reject("uitslagLand1", "De uitslag kan pas ingevuld worden na 2 uur na de start van de wedstrijd.");
             bindingResult.reject("uitslagLand2", "De uitslag kan pas ingevuld worden na 2 uur na de start van de wedstrijd.");
@@ -211,7 +213,7 @@ public class WedstrijdController {
             wedstrijdService.updateUitslag(wedstrijdId, form);
         } catch (IllegalStateException ex) {
             model.addAttribute("wedstrijd", wedstrijd);
-            model.addAttribute("magUitslag", LocalDateTime.now().isAfter(start.plusHours(2)));
+            model.addAttribute("magUitslag", LocalDateTime.now(clock).isAfter(start.plusHours(2)));
             model.addAttribute("editError", ex.getMessage());
             return "wedstrijd-edit-uitslag";
         }

@@ -6,6 +6,7 @@ import com.example.fifa_2026.service.PrognoseService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class PrognoseRestController {
     private final CurrentUserService currentUser;
     private final PrognoseService prognoses;
+    private final Clock clock;
 
     record PrognoseItem(long id, long wedstrijdId, String land1, String land2,
                         String speeldatum, String starttijd, String stad, String stadion, String winnaar,
@@ -24,7 +26,7 @@ public class PrognoseRestController {
 
     @GetMapping("/prognoses")
     public List<PrognoseItem> eigenPrognoses() {
-        var now = LocalDateTime.now();
+        var now = LocalDateTime.now(clock);
         return prognoses.getPrognosesForGebruiker(gebruikerId()).stream().map(p -> {
             var w = p.getWedstrijd();
             var aftrap = w.getSpeeldatum().atTime(w.getStarttijd().toLocalTime());
