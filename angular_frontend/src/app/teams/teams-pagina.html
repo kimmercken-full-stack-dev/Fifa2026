@@ -62,10 +62,10 @@
     <button class="btn" type="button" [disabled]="bezig()" (click)="actie('DELETE', '/teams/' + id, '/mijn-teams')">{{ 'Verwijder team' | vertaal }}</button>
   }
   <ul>
-    @for (lid of gegevens.leden; track lid.id) {
-      <li>{{ lid.username }} · {{ lid.score }} {{ 'punten' | vertaal }}
+    @for (lid of gegevens.leden; track lid.gebruikerId) {
+      <li>{{ lid.nickname }} · {{ lid.score }} {{ 'punten' | vertaal }}
         @if (gegevens.eigenaar && !lid.eigenaar) {
-          <button class="btn" type="button" [disabled]="bezig()" (click)="actie('DELETE', '/teams/' + id + '/leden/' + lid.id)">{{ 'Verwijder lid' | vertaal }}</button>
+          <button class="btn" type="button" [disabled]="bezig()" (click)="actie('DELETE', '/teams/' + id + '/leden/' + lid.gebruikerId)">{{ 'Verwijder lid' | vertaal }}</button>
         }
       </li>
     }

@@ -3,14 +3,12 @@ package com.example.fifa_2026.restControllers;
 import com.example.fifa_2026.dto.MijnTeamsoverzichtDTO;
 import com.example.fifa_2026.dto.TeamCreateDTO;
 import com.example.fifa_2026.dto.TeamsDTO;
-import com.example.fifa_2026.model.Team;
 import com.example.fifa_2026.service.CurrentUserService;
 import com.example.fifa_2026.service.TeamScoreboardService;
 import com.example.fifa_2026.service.TeamService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +22,6 @@ public class TeamRestController {
     private final TeamService teams;
     private final TeamScoreboardService scoreboard;
 
-    record Lid(long id, String username, int score, boolean eigenaar) {}
-    record TeamDetail(long teamId, String teamNaam, Long invitecode, boolean eigenaar, List<Lid> leden) {}
     record Uitnodiging(@Positive long code) {}
 
     @GetMapping("/teams")
@@ -35,23 +31,12 @@ public class TeamRestController {
 
     @GetMapping("/mijn-teams")
     public List<TeamsDTO> mijnTeams() {
-        return scoreboard.getMyTeams(gebruikerId()).stream().map(t -> new TeamsDTO(t.getTeamID(),
-                t.getTeamNaam(), t.getEigenaar().getUsername(), t.getScore(), t.getTeamleden().size())).toList();
+        return scoreboard.getMijnTeamsOverzicht(gebruikerId());
     }
 
     @GetMapping("/teams/{id}")
-    public TeamDetail team(@PathVariable long id) {
-        long gebruiker = gebruikerId();
-        Team team;
-        try {
-            team = teams.getTeamForViewOrThrow(id, gebruiker);
-        } catch (IllegalStateException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
-        }
-        boolean eigenaar = team.getEigenaar() != null && team.getEigenaar().getId() == gebruiker;
-        return new TeamDetail(id, team.getTeamNaam(), eigenaar ? team.getInvitecode() : null, eigenaar,
-                team.getTeamleden().stream().map(l -> new Lid(l.getId(), l.getUsername(), l.getScore(),
-                        team.getEigenaar() != null && team.getEigenaar().getId() == l.getId())).toList());
+    public MijnTeamsoverzichtDTO team(@PathVariable long id) {
+        return teams.getTeamDetail(id, gebruikerId());
     }
 
     @PostMapping("/teams")
@@ -66,11 +51,7 @@ public class TeamRestController {
 
     @GetMapping("/teams/{id}/scoreboard")
     public MijnTeamsoverzichtDTO klassement(@PathVariable long id) {
-        try {
-            return scoreboard.getTeamScoreboard(id, gebruikerId());
-        } catch (IllegalStateException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, ex.getMessage());
-        }
+        return scoreboard.getTeamScoreboard(id, gebruikerId());
     }
 
     @DeleteMapping("/teams/{id}")

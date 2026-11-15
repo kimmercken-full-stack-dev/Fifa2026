@@ -1,6 +1,10 @@
 package com.example.fifa_2026.service;
 
 import com.example.fifa_2026.dto.TeamsDTO;
+import com.example.fifa_2026.dto.MijnTeamsoverzichtDTO;
+import com.example.fifa_2026.exception.ConflictException;
+import com.example.fifa_2026.exception.GeenToegangException;
+import com.example.fifa_2026.exception.NietGevondenException;
 import com.example.fifa_2026.model.Gebruiker;
 import com.example.fifa_2026.model.Team;
 import com.example.fifa_2026.repository.GebruikerRepository;
@@ -29,30 +33,37 @@ public class TeamService {
     private final MessageSource messageSource;
 
     /** Sorteert teams op de som van hun ledenscores en geeft maximaal tien overzichts-DTO's terug. */
+    @Transactional(readOnly = true)
     public List<TeamsDTO> getTop10Teams() {
         return teamRepository.findAll().stream()
                 .sorted(Comparator.comparingInt(Team::getScore).reversed())
                 .limit(10)
-                .map(t -> new TeamsDTO(
-                        t.getTeamID(),
-                        t.getTeamNaam(),
-                        t.getEigenaar() != null ? t.getEigenaar().getUsername() : "-",
-                        t.getScore(),
-                        t.getTeamleden().size()
-                )).toList();
+                .map(TeamService::naarTeamOverzicht).toList();
+    }
+
+    static TeamsDTO naarTeamOverzicht(Team team) {
+        return new TeamsDTO(team.getTeamID(), team.getTeamNaam(),
+                team.getEigenaar() != null ? team.getEigenaar().getUsername() : "-",
+                team.getScore(), team.getTeamleden().size());
+    }
+
+    @Transactional(readOnly = true)
+    public MijnTeamsoverzichtDTO getTeamDetail(long teamId, long gebruikerId) {
+        Team team = getTeamForViewOrThrow(teamId, gebruikerId);
+        return TeamScoreboardService.maakKlassement(team, isOwner(team, gebruikerId));
     }
 
     /** Haalt het team met leden op en weigert toegang wanneer de gebruiker geen lid is. */
     @Transactional(readOnly = true)
     public Team getTeamForViewOrThrow(long teamId, long currentUserId) {
         Team team = teamRepository.findWithTeamledenByTeamID(teamId)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         msg("team.notfound", teamId)));
 
         boolean isLid = team.getTeamleden().stream().anyMatch(g -> g.getId() == currentUserId);
 
         if (!isLid) {
-            throw new IllegalStateException(msg("team.noaccess.member"));
+            throw new GeenToegangException(msg("team.noaccess.member"));
         }
         return team;
     }
@@ -66,20 +77,20 @@ public class TeamService {
     public void removeMember(long teamId, long memberUserId, long currentUserId) {
 
         Team team = teamRepository.findWithTeamledenByTeamID(teamId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("team.notfound", teamId)));
+                .orElseThrow(() -> new NietGevondenException(msg("team.notfound", teamId)));
 
         // enkel owner mag verwijderen
         if (!isOwner(team, currentUserId)) {
-            throw new IllegalStateException(msg("team.noaccess.owner"));
+            throw new GeenToegangException(msg("team.noaccess.owner"));
         }
 
         // eigenaar niet verwijderen
         if (team.getEigenaar() != null && team.getEigenaar().getId() == memberUserId) {
-            throw new IllegalStateException(msg("team.owner.cannotremove"));
+            throw new ConflictException(msg("team.owner.cannotremove"));
         }
 
         Gebruiker lid = gebruikerRepository.findById(memberUserId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("user.notfound", memberUserId)));
+                .orElseThrow(() -> new NietGevondenException(msg("user.notfound", memberUserId)));
 
         // beide kanten bijwerken
         team.getTeamleden().remove(lid);
@@ -94,10 +105,10 @@ public class TeamService {
     public Long regenerateInvitecode(long teamId, long currentUserId) {
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("team.notfound", teamId)));
+                .orElseThrow(() -> new NietGevondenException(msg("team.notfound", teamId)));
 
         if (!isOwner(team, currentUserId)) {
-            throw new IllegalStateException(msg("team.noaccess.owner"));
+            throw new GeenToegangException(msg("team.noaccess.owner"));
         }
 
         long newCode = generateUniqueInvitecode();
@@ -114,10 +125,10 @@ public class TeamService {
     public Team joinTeamByInvitecode(long invitecode, long currentUserId) {
 
         Team team = teamRepository.findByInvitecode(invitecode)
-                .orElseThrow(() -> new IllegalArgumentException(msg("team.invite.invalid")));
+                .orElseThrow(() -> new NietGevondenException(msg("team.invite.invalid")));
 
         Gebruiker user = gebruikerRepository.findById(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("user.notfound", currentUserId)));
+                .orElseThrow(() -> new NietGevondenException(msg("user.notfound", currentUserId)));
 
         // al lid? dan niets doen
         boolean alreadyMember = team.getTeamleden().stream().anyMatch(g -> g.getId() == currentUserId);
@@ -140,11 +151,11 @@ public class TeamService {
         String naam = teamNaam.trim();
 
         if (teamRepository.existsByTeamNaamIgnoreCase(naam)) {
-            throw new IllegalArgumentException(msg("team.name.exists", naam));
+            throw new ConflictException(msg("team.name.exists", naam));
         }
 
         Gebruiker eigenaar = gebruikerRepository.findById(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("user.notfound", currentUserId)));
+                .orElseThrow(() -> new NietGevondenException(msg("user.notfound", currentUserId)));
 
         Team team = new Team(naam, generateUniqueInvitecode(), eigenaar);
 
@@ -165,11 +176,11 @@ public class TeamService {
     public void deleteTeam(long teamId, long currentUserId) {
 
         Team team = teamRepository.findWithTeamledenByTeamID(teamId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("team.notfound", teamId)));
+                .orElseThrow(() -> new NietGevondenException(msg("team.notfound", teamId)));
 
         // enkel eigenaar mag verwijderen
         if (!isOwner(team, currentUserId)) {
-            throw new IllegalStateException(msg("team.noaccess.owner"));
+            throw new GeenToegangException(msg("team.noaccess.owner"));
         }
 
         // relatie verwijderen bij alle leden

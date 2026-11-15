@@ -1,6 +1,7 @@
 package com.example.fifa_2026.service;
 
 import com.example.fifa_2026.dto.LocatieDTO;
+import com.example.fifa_2026.exception.NietGevondenException;
 import com.example.fifa_2026.model.Locatie;
 import com.example.fifa_2026.repository.LocatieRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class LocatieService {
     public LocatieDTO getLocatieById(Long id) {
         return locatieRepository.findById(id)
                 .map(this::toDTO)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         messageSource.getMessage("error.locatie.nietgevonden.id", new Object[]{id}, Locale.getDefault())));
     }
 
