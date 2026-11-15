@@ -2,6 +2,8 @@ package com.example.fifa_2026.service;
 
 import com.example.fifa_2026.dto.GebruikerDTO;
 import com.example.fifa_2026.dto.GebruikerRegistratieDTO;
+import com.example.fifa_2026.exception.ConflictException;
+import com.example.fifa_2026.exception.NietGevondenException;
 import com.example.fifa_2026.model.Gebruiker;
 import com.example.fifa_2026.model.Rol;
 import com.example.fifa_2026.model.Team;
@@ -28,7 +30,7 @@ public class GebruikerService {
 
     public Gebruiker getByIdOrThrow(long gebruikerId) {
         return gebruikerRepository.findById(gebruikerId)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         messageSource.getMessage(
                                 "error.gebruiker.nietgevonden",
                                 new Object[]{gebruikerId},
@@ -76,7 +78,7 @@ public class GebruikerService {
         String username = form.getUsername().trim();
 
         if (gebruikerRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException(
+            throw new ConflictException(
                     messageSource.getMessage(
                             "error.username.bestaat",
                             new Object[]{username},

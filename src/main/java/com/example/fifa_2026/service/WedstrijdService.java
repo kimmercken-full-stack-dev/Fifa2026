@@ -2,6 +2,8 @@ package com.example.fifa_2026.service;
 
 import com.example.fifa_2026.dto.WedstrijdCreateDTO;
 import com.example.fifa_2026.dto.WedstrijdDTO;
+import com.example.fifa_2026.exception.ConflictException;
+import com.example.fifa_2026.exception.NietGevondenException;
 import com.example.fifa_2026.dto.WedstrijdEditDTO;
 import com.example.fifa_2026.dto.WedstrijdUitslagDTO;
 import com.example.fifa_2026.exception.wedstrijdmomentNietBeschikbaarInDitStadionException;
@@ -42,20 +44,24 @@ public class WedstrijdService {
     private final Clock clock;
 
     private List<WedstrijdDTO> convertToDTOList(List<Wedstrijd> wedstrijden) {
-        return wedstrijden.stream()
-                .map(w -> new WedstrijdDTO(
-                        w.getWedstrijdID(),
-                        w.getLand1(),
-                        w.getLand2(),
-                        w.getSpeeldatum(),
-                        w.getStarttijd(),
-                        w.getUitslagLand1(),
-                        w.getUitslagLand2(),
-                        w.getWinnaar(),
-                        w.getLocatie().getStad(),
-                        w.getLocatie().getStadion(),
-                        w.getLocatie().getStadiumcode(),
-                        w.getLocatie().getChecksum())).toList();
+        return wedstrijden.stream().map(WedstrijdService::naarWedstrijdDTO).toList();
+    }
+
+    static WedstrijdDTO naarWedstrijdDTO(Wedstrijd wedstrijd) {
+        var locatie = wedstrijd.getLocatie();
+        return new WedstrijdDTO(
+                wedstrijd.getWedstrijdID(),
+                wedstrijd.getLand1(),
+                wedstrijd.getLand2(),
+                wedstrijd.getSpeeldatum(),
+                wedstrijd.getStarttijd(),
+                wedstrijd.getUitslagLand1(),
+                wedstrijd.getUitslagLand2(),
+                wedstrijd.getWinnaar(),
+                locatie.getStad(),
+                locatie.getStadion(),
+                locatie.getStadiumcode(),
+                locatie.getChecksum());
     }
 
     public List<WedstrijdDTO> getAllWedstrijden() {
@@ -71,7 +77,7 @@ public class WedstrijdService {
     public Wedstrijd createWedstrijd(WedstrijdCreateDTO form) {
 
         Locatie locatie = locatieRepository.findById(form.getLocatieId())
-                .orElseThrow(() -> new IllegalArgumentException(messageSource.getMessage(
+                .orElseThrow(() -> new NietGevondenException(messageSource.getMessage(
                                 "error.locatie.nietgevonden",
                                 new Object[]{form.getLocatieId()},
                                 Locale.getDefault())));
@@ -116,7 +122,7 @@ public class WedstrijdService {
 
     public Wedstrijd getWedstrijdEntityOrThrow(long wedstrijdId) {
 
-        return repo.findById(wedstrijdId).orElseThrow(() -> new IllegalArgumentException(
+        return repo.findById(wedstrijdId).orElseThrow(() -> new NietGevondenException(
                         messageSource.getMessage("error.wedstrijd.nietgevonden",
                                 new Object[]{wedstrijdId}, Locale.getDefault())));
     }
@@ -129,7 +135,7 @@ public class WedstrijdService {
 
         return locatieRepository.findById(id)
                 .map(Locatie::getCapaciteit)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         messageSource.getMessage("error.stadion.nietgevonden",
                                 new Object[]{id}, Locale.getDefault())));
     }
@@ -148,7 +154,7 @@ public class WedstrijdService {
         LocalDateTime now = LocalDateTime.now(clock);
 
         if (now.isBefore(earliestAllowed)) {
-            throw new IllegalStateException(
+            throw new ConflictException(
                     messageSource.getMessage("error.uitslag.tevroeg",
                             new Object[]{earliestAllowed}, Locale.getDefault()));
         }
@@ -173,7 +179,7 @@ public class WedstrijdService {
         String s4 = form.getStarttijd();
         Long l1 = form.getLocatieId();
         Locatie locatie = locatieRepository.findById(l1)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         messageSource.getMessage("error.locatie.nietgevonden",
                                 new Object[]{l1}, Locale.getDefault())));
 
@@ -204,7 +210,7 @@ public class WedstrijdService {
         w.setLand1(s1);
         w.setLand2(s2);
         w.setSpeeldatum(LocalDate.parse(s3));
-        w.setStarttijd(Time.valueOf(s4));
+        w.setStarttijd(Time.valueOf(LocalTime.parse(s4)));
         w.setLocatie(locatie);
         repo.save(w);
 

@@ -13,9 +13,9 @@
   <tbody>
     @for (rij of prognoses(); track rij.id) {
       <tr>
-        <td><a [routerLink]="['/wedstrijd', rij.wedstrijdId]">{{ rij.land1 }} – {{ rij.land2 }}</a></td>
-        <td>{{ rij.speeldatum }}</td><td>{{ rij.starttijd }}</td>
-        <td>{{ rij.stad }} ({{ rij.stadion }})</td>
+        <td><a [routerLink]="['/wedstrijd', rij.wedstrijd.wedstrijdID]">{{ rij.wedstrijd.land1 }} – {{ rij.wedstrijd.land2 }}</a></td>
+        <td>{{ rij.wedstrijd.speeldatum }}</td><td>{{ rij.wedstrijd.starttijd }}</td>
+        <td>{{ rij.wedstrijd.stad }} ({{ rij.wedstrijd.stadion }})</td>
         <td>{{ rij.uitslagLand1 }} – {{ rij.uitslagLand2 }}</td>
         <td>{{ (rij.winnaar === 'GELIJKSPEL' ? 'Gelijkspel' : rij.winnaar ?? '') | vertaal }}</td>
         <td><div class="actions">

@@ -21,6 +21,8 @@ export class Api {
 
 export function foutmelding(error: HttpErrorResponse): string {
   if (error.status === 401) return 'Meld je aan of controleer je gebruikersnaam en wachtwoord.';
-  if (error.status === 403) return 'Je hebt geen toegang tot deze actie. Vernieuw de pagina als je sessie verlopen is.';
+  if (error.status === 403) {
+    return error.error?.detail || 'Je hebt geen toegang tot deze actie. Vernieuw de pagina als je sessie verlopen is.';
+  }
   return error.error?.fouten?.join(' ') || error.error?.detail || 'De aanvraag is mislukt. Probeer opnieuw.';
 }

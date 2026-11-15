@@ -1,6 +1,7 @@
 package com.example.fifa_2026.repository;
 
 import com.example.fifa_2026.model.Prognose;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,7 @@ public interface PrognoseRepository extends JpaRepository<Prognose, Long> {
         @org.springframework.data.repository.query.Param("bonusExact") int bonusExact,
         @org.springframework.data.repository.query.Param("bonusWinnaar") int bonusWinnaar);
 
+    @EntityGraph(attributePaths = "wedstrijd.locatie")
     List<Prognose> findAllByGebruiker_IdOrderByWedstrijd_SpeeldatumAscWedstrijd_StarttijdAsc(long gebruikerId);
     void deleteByIdAndGebruiker_Id(long prognoseId, long gebruikerId);
     List<Prognose> findAllByGebruiker_Id(long gebruikerId);

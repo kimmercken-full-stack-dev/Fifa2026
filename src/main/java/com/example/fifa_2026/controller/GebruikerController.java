@@ -1,6 +1,7 @@
 package com.example.fifa_2026.controller;
 
 import com.example.fifa_2026.dto.GebruikerRegistratieDTO;
+import com.example.fifa_2026.exception.ConflictException;
 import com.example.fifa_2026.service.CurrentUserService;
 import com.example.fifa_2026.service.GebruikerService;
 import jakarta.validation.Valid;
@@ -44,7 +45,7 @@ public class GebruikerController {
 
         try {
             gebruikerService.registreer(form);
-        } catch (IllegalArgumentException ex) {
+        } catch (ConflictException | IllegalArgumentException ex) {
             model.addAttribute("registerError", ex.getMessage());
             return "registreer";
         }

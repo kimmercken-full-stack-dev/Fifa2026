@@ -1,6 +1,7 @@
 package com.example.fifa_2026.service;
 
 import com.example.fifa_2026.model.Gebruiker;
+import com.example.fifa_2026.exception.NietGevondenException;
 import com.example.fifa_2026.repository.GebruikerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -48,7 +49,7 @@ public class CurrentUserService {
         String username = getCurrentUsernameOrThrow();
 
         return gebruikerRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         messageSource.getMessage("error.gebruiker.nietgevonden.username", new Object[]{username}, Locale.getDefault())));
     }
 
