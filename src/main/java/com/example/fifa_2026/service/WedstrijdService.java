@@ -132,13 +132,17 @@ public class WedstrijdService {
                                 new Object[]{id}, Locale.getDefault())));
     }
 
+    public static LocalDateTime uitslagVanaf(LocalDateTime aftrap) {
+        return aftrap.plusHours(2);
+    }
+
     /** Weigert een te vroege uitslag, bepaalt de winnaar en herberekent scores van betrokken gebruikers. */
     @Transactional
     public void updateUitslag(long wedstrijdId, WedstrijdUitslagDTO form) {
 
         Wedstrijd w = getWedstrijdEntityOrThrow(wedstrijdId);
         LocalDateTime start = LocalDateTime.of(w.getSpeeldatum(), w.getStarttijd().toLocalTime());
-        LocalDateTime earliestAllowed = start.plusHours(2);
+        LocalDateTime earliestAllowed = uitslagVanaf(start);
         LocalDateTime now = LocalDateTime.now();
 
         if (now.isBefore(earliestAllowed)) {

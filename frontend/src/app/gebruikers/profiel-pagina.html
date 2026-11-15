@@ -1,0 +1,11 @@
+<header class="hoofd"><h1>{{ 'Profiel' | vertaal }}</h1></header>
+@if (fout()) { <p role="alert">{{ fout() | vertaal }}</p> }
+@if (profiel(); as gebruiker) {
+<section class="card">
+  <div class="row"><strong>{{ 'Gebruikersnaam' | vertaal }}</strong>{{ gebruiker.username }}</div>
+  <div class="row"><strong>{{ 'Voornaam' | vertaal }}</strong>{{ gebruiker.voornaam }}</div>
+  <div class="row"><strong>{{ 'Familienaam' | vertaal }}</strong>{{ gebruiker.familienaam }}</div>
+  <div class="row"><strong>{{ 'Rol' | vertaal }}</strong>{{ gebruiker.rol }}</div>
+  <div class="row"><strong>{{ 'Score' | vertaal }}</strong>{{ gebruiker.score }}</div>
+</section>
+}

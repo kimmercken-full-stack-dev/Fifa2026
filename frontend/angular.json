@@ -25,7 +25,9 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles/material-theme.scss",
+              "../src/main/resources/static/style.css",
+              "src/styles/styles.css"
             ]
           },
           "configurations": {
@@ -54,6 +56,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "config/proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "fifa-frontend:build:production"

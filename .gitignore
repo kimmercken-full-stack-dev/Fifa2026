@@ -33,7 +33,6 @@ build/
 .vscode/
 
 # Lokale gegevens en gegenereerde bestanden
-/config/application-local.properties
 .env
 .env.*
 !.env.example
@@ -48,3 +47,6 @@ build/
 Thumbs.db
 
 /config/application-*-local.properties
+/config/database-local.properties
+
+/config/application-local.properties

@@ -1,0 +1,26 @@
+<nav class="nav" [attr.aria-label]="'Hoofdnavigatie' | vertaal">
+  <select [attr.aria-label]="'Taal' | vertaal" #taalkeuze [value]="taal.huidig()"
+          (change)="taal.wijzig(taalkeuze.value)">
+    <option value="nl">Nederlands</option>
+    <option value="en">English</option>
+  </select>
+  <a class="btn" routerLink="/">{{ 'Wedstrijden' | vertaal }}</a>
+  @if (profiel()?.admin) {
+    <a class="btn" routerLink="/beheer/wedstrijden/nieuw">{{ 'Nieuwe wedstrijd' | vertaal }}</a>
+  }
+  <a class="btn" routerLink="/teams">{{ 'Top 10 teams' | vertaal }}</a>
+  <span class="spacer"></span>
+  @if (profiel(); as gebruiker) {
+    <div class="user-info"><strong>{{ gebruiker.username }}</strong> | {{ gebruiker.rol }}</div>
+    <a class="btn" routerLink="/prognoses">{{ 'Prognoses' | vertaal }}</a>
+    <a class="btn" routerLink="/mijn-teams">{{ 'Mijn teams' | vertaal }}</a>
+    <a class="btn" routerLink="/profiel">{{ 'Profiel' | vertaal }}</a>
+    <button class="btn" type="button" (click)="afmelden()">{{ 'Afmelden' | vertaal }}</button>
+  } @else {
+    <a class="btn" routerLink="/login">{{ 'Inloggen' | vertaal }}</a>
+    <a class="btn" routerLink="/registreer">{{ 'Registreren' | vertaal }}</a>
+  }
+</nav>
+@if (fout()) { <p class="card error" role="alert">{{ fout() | vertaal }}</p> }
+@if (taal.fout()) { <p class="card error" role="alert">{{ taal.fout() | vertaal }}</p> }
+<main><router-outlet /></main>

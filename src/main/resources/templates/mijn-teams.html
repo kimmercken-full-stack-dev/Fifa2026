@@ -40,11 +40,12 @@
                 <form th:if="${team.eigenaar != null and team.eigenaar.username == #authentication.name}"
                       th:action="@{|/teams/${team.teamID}/delete|}"
                       method="post"
-                      style="display:inline-flex; margin:0;">
+                      style="display:inline-flex; margin:0;"
+                      th:attr="data-confirm=#{confirmDeleteTeam}"
+                      onsubmit="return confirm(this.dataset.confirm);">
 
-                    <button class="btn-danger"
-                            type="submit"
-                            onclick="return confirm('Ben je zeker dat je dit team wilt verwijderen?');">
+                    <button class="btn-danger" th:text="#{verwijder}"
+                            type="submit">
                         Verwijderen
                     </button>
 

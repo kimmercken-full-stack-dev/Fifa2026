@@ -1,0 +1,45 @@
+<header class="hoofd"><h1>{{ 'Wedstrijdoverzicht' | vertaal }}</h1></header>
+
+@if (fout()) {
+  <p class="card error" role="alert">{{ fout() | vertaal }}</p>
+}
+
+<div class="tabel-scroll">
+  <table class="wedstrijdentabel" [attr.aria-label]="'Wedstrijden' | vertaal">
+    <thead>
+      <tr>
+        <th scope="col">{{ 'Land 1' | vertaal }}</th>
+        <th scope="col">{{ 'Land 2' | vertaal }}</th>
+        <th scope="col">{{ 'Speeldatum' | vertaal }}</th>
+        <th scope="col">{{ 'Starttijd' | vertaal }}</th>
+        <th scope="col">{{ 'Stad – Stadion' | vertaal }}</th>
+        <th scope="col">{{ 'Uitslag land 1 – Uitslag land 2' | vertaal }}</th>
+        <th scope="col">{{ 'Winnaar' | vertaal }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (wedstrijd of wedstrijden(); track wedstrijd.wedstrijdID) {
+        <tr>
+          <td>
+            <a [routerLink]="['/wedstrijd', wedstrijd.wedstrijdID]"
+               [attr.aria-label]="('Bekijk' | vertaal) + ' ' + wedstrijd.land1 + ' – ' + wedstrijd.land2">
+              {{ wedstrijd.land1 }}
+            </a>
+          </td>
+          <td>{{ wedstrijd.land2 }}</td>
+          <td>{{ wedstrijd.speeldatum | date:'dd-MM-yyyy' }}</td>
+          <td>{{ wedstrijd.starttijd.slice(0, 5) }}</td>
+          <td>{{ wedstrijd.stad }} – {{ wedstrijd.stadion }}</td>
+          <td>
+            @if (wedstrijd.uitslagLand1 != null && wedstrijd.uitslagLand2 != null) {
+              {{ wedstrijd.uitslagLand1 }} – {{ wedstrijd.uitslagLand2 }}
+            } @else {
+              –
+            }
+          </td>
+          <td>{{ wedstrijd.winnaar }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

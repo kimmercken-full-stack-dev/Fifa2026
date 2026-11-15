@@ -1,0 +1,31 @@
+<header class="hoofd"><h1>{{ 'Mijn prognoses' | vertaal }}</h1></header>
+@if (fout()) { <p role="alert">{{ fout() | vertaal }}</p> }
+<div class="tabel-scroll"><table>
+  <thead><tr>
+    <th scope="col">{{ 'Wedstrijd' | vertaal }}</th>
+    <th scope="col">{{ 'Speeldatum' | vertaal }}</th>
+    <th scope="col">{{ 'Starttijd' | vertaal }}</th>
+    <th scope="col">{{ 'Stad – Stadion' | vertaal }}</th>
+    <th scope="col">{{ 'Prognose' | vertaal }}</th>
+    <th scope="col">{{ 'Winnaar' | vertaal }}</th>
+    <th scope="col">{{ 'Acties' | vertaal }}</th>
+  </tr></thead>
+  <tbody>
+    @for (rij of prognoses(); track rij.id) {
+      <tr>
+        <td><a [routerLink]="['/wedstrijd', rij.wedstrijdId]">{{ rij.land1 }} – {{ rij.land2 }}</a></td>
+        <td>{{ rij.speeldatum }}</td><td>{{ rij.starttijd }}</td>
+        <td>{{ rij.stad }} ({{ rij.stadion }})</td>
+        <td>{{ rij.uitslagLand1 }} – {{ rij.uitslagLand2 }}</td>
+        <td>{{ (rij.winnaar === 'GELIJKSPEL' ? 'Gelijkspel' : rij.winnaar ?? '') | vertaal }}</td>
+        <td><div class="actions">
+          <button class="btn" type="button" [disabled]="bezig()"
+                  (click)="verwijder(rij.id)">{{ 'Verwijderen' | vertaal }}</button>
+          @if (rij.wijzigbaar) {
+            <a class="btn" [routerLink]="['/prognoses', rij.wedstrijdId]">{{ 'Wijzigen' | vertaal }}</a>
+          }
+        </div></td>
+      </tr>
+    }
+  </tbody>
+</table></div>

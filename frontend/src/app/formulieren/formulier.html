@@ -1,0 +1,27 @@
+<header class="hoofd"><h1>{{ formulier.titel | vertaal }}</h1></header>
+@if (fout()) {
+  <p class="card error" role="alert">{{ fout() | vertaal }}</p>
+}
+@if (klaar()) {
+  <form class="card invoerformulier" #form="ngForm" (ngSubmit)="bewaar()">
+    @for (veld of formulier.velden; track veld.naam) {
+      <label [for]="veld.naam">{{ veld.label | vertaal }}</label>
+      @if (veld.type === 'select') {
+        <select [id]="veld.naam" [name]="veld.naam" [(ngModel)]="waarden[veld.naam]" required>
+          <option [ngValue]="null">{{ 'Kies een stadion' | vertaal }}</option>
+          @for (locatie of locaties(); track locatie.id) {
+            <option [ngValue]="locatie.id">{{ locatie.stadion }} ({{ locatie.stad }})</option>
+          }
+        </select>
+      } @else if (veld.type === 'number') {
+        <input [id]="veld.naam" [name]="veld.naam" type="number" min="0" step="1"
+               [(ngModel)]="waarden[veld.naam]" required>
+      } @else {
+        <input [id]="veld.naam" [name]="veld.naam" [type]="veld.type"
+               [(ngModel)]="waarden[veld.naam]" required>
+      }
+    }
+    <button class="btn" type="submit" [disabled]="form.invalid || bezig()">{{ 'Bevestigen' | vertaal }}</button>
+  </form>
+}
+<a class="btn" [routerLink]="terug">{{ 'Terug' | vertaal }}</a>

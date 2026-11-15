@@ -17,7 +17,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -71,6 +74,15 @@ class SecurityTest {
     // =========================
 
     @WithAnonymousUser
+    @ParameterizedTest
+    @CsvSource({"/", "/wedstrijd/"})
+    void startUrlVerwijstNaarOpenbaarWedstrijdoverzicht(String url) throws Exception {
+        mockMvc.perform(get(url))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/wedstrijd"));
+    }
+
+    @WithAnonymousUser
     @Test
     void anonymousUserRedirectedToLogin() throws Exception {
 
@@ -82,6 +94,19 @@ class SecurityTest {
     // =========================
     // USER ACCESS
     // =========================
+
+    @ParameterizedTest
+    @CsvSource({"supporter, USER", "beheerder, ADMIN"})
+    void eigenApiProfielToontGebruikersnaamEnRol(String username, Rol rol) throws Exception {
+        when(currentUserService.getCurrentGebruikerOrThrow())
+                .thenReturn(Gebruiker.builder().username(username).rol(rol).build());
+        when(currentUserService.isAdmin()).thenReturn(rol == Rol.ADMIN);
+
+        mockMvc.perform(get("/api/profiel").with(user(username).roles(rol.name())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(username))
+                .andExpect(jsonPath("$.rol").value(rol.name()));
+    }
 
     @WithMockUser(username = "user", roles = {"USER"})
     @Test
@@ -112,6 +137,14 @@ class SecurityTest {
     void userCannotAccessAdminPage() throws Exception {
 
         mockMvc.perform(get("/wedstrijd/nieuw"))
+                .andExpect(status().isForbidden());
+    }
+
+    @WithMockUser(roles = "USER")
+    @ParameterizedTest
+    @CsvSource({"/wedstrijd/nieuw", "/api/beheer/wedstrijden", "/wedstrijd/1/delete"})
+    void gewoneGebruikerKanWedstrijdenNietBeheren(String url) throws Exception {
+        mockMvc.perform(post(url).with(csrf()))
                 .andExpect(status().isForbidden());
     }
 

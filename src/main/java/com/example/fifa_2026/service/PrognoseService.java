@@ -39,6 +39,10 @@ public class PrognoseService {
                 .orElseThrow(() -> new IllegalArgumentException(msg("wedstrijd.notfound", wedstrijdId)));
     }
 
+    public static LocalDateTime prognoseDeadline(LocalDateTime aftrap) {
+        return aftrap.minusHours(1);
+    }
+
     /** Controleert de deadline, zoekt de bestaande voorspelling en bewaart de scores en afgeleide winnaar. */
     @Transactional
     public Prognose saveOrUpdatePrognose(PrognoseFormDTO form, long gebruikerId) {
@@ -52,7 +56,7 @@ public class PrognoseService {
                 wedstrijd.getSpeeldatum(),
                 wedstrijd.getStarttijd().toLocalTime());
 
-        LocalDateTime deadline = start.minusHours(1);
+        LocalDateTime deadline = prognoseDeadline(start);
 
         LocalDateTime now = LocalDateTime.now();
 

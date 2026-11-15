@@ -2,6 +2,7 @@ package com.example.fifa_2026.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,6 +24,27 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(1)
+    SecurityFilterChain angularApi(HttpSecurity http) throws Exception {
+        return http.securityMatcher("/api/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/csrf", "/api/teams", "/api/wedstrijden").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/login", "/api/registreer").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/taal").permitAll()
+                        .requestMatchers("/api/beheer/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .formLogin(form -> form.loginProcessingUrl("/api/login")
+                        .successHandler((request, response, authentication) -> response.setStatus(204))
+                        .failureHandler((request, response, failure) -> response.setStatus(401)))
+                .logout(logout -> logout.logoutUrl("/api/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)))
+                .exceptionHandling(errors -> errors
+                        .authenticationEntryPoint((request, response, failure) -> response.setStatus(401))
+                        .accessDeniedHandler((request, response, failure) -> response.setStatus(403)))
+                .build();
+    }
+
+    @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
@@ -39,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/", "/").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/wedstrijd", "/wedstrijd/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/wedstrijden").permitAll() // nieuwe regel
                         .requestMatchers(HttpMethod.GET, "/teams", "/teams/").permitAll()
                         //.requestMatchers(HttpMethod.GET, "/wedstrijd/{wedstrijdId}").authenticated()
                         //.requestMatchers(HttpMethod.GET, "/wedstrijd/*").authenticated()
@@ -46,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers("/wedstrijd/nieuw", "/wedstrijd/nieuw/**", "/wedstrijd/*/edit-uitslag", "/wedstrijd/*/edit-uitslag/**",
                                  "/wedstrijd/*/edit", "/wedstrijd/*/edit/**")
                         .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/wedstrijd/*/delete").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

@@ -1,0 +1,29 @@
+@if (detail().wedstrijd; as wedstrijd) {
+  <header class="hoofd"><h1>{{ wedstrijd.land1 }} – {{ wedstrijd.land2 }}</h1></header>
+  <section class="card">
+    <p><strong>{{ wedstrijd.land1 }} – {{ wedstrijd.land2 }}</strong><br>
+      {{ wedstrijd.speeldatum | date:'dd-MM-yyyy' }} {{ wedstrijd.starttijd }} — {{ wedstrijd.stad }} ({{ wedstrijd.stadion }})
+    </p>
+    @if (wedstrijd.uitslagLand1 != null && wedstrijd.uitslagLand2 != null) {
+      <p>{{ 'Uitslag' | vertaal }}: {{ wedstrijd.uitslagLand1 }} – {{ wedstrijd.uitslagLand2 }}</p>
+      @if (wedstrijd.winnaar) { <p>{{ 'Resultaat' | vertaal }}: {{ wedstrijd.winnaar }}</p> }
+    } @else {
+      <p><em>{{ 'De officiële eindstand is nog niet bekend.' | vertaal }}</em></p>
+    }
+
+    @if (profiel()?.admin) {
+      <div class="actions">
+        <a class="btn" [routerLink]="['/beheer/wedstrijden', wedstrijd.wedstrijdID, 'wijzigen']">{{ 'Wijzigen' | vertaal }}</a>
+        @if (wedstrijd.magUitslagInvullen) {
+          <a class="btn" [routerLink]="['/beheer/wedstrijden', wedstrijd.wedstrijdID, 'uitslag']">{{ 'Uitslag invoeren' | vertaal }}</a>
+        }
+        <button class="btn btn-danger" type="button" [disabled]="bezig()" (click)="verwijder(wedstrijd.wedstrijdID)">{{ 'Verwijderen' | vertaal }}</button>
+      </div>
+    }
+    <p><strong>{{ 'Stadioncapaciteit' | vertaal }}:</strong> {{ wedstrijd.capaciteit }}</p>
+    <app-wedstrijdprognose [wedstrijd]="wedstrijd" />
+    @if (fout()) { <p class="error" role="alert">{{ fout() | vertaal }}</p> }
+  </section>
+} @else {
+  <p class="card" role="status">{{ detail().melding | vertaal }}</p>
+}

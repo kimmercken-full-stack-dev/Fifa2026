@@ -1,8 +1,9 @@
 package com.example.fifa_2026.restController;
 
-import com.example.fifa_2026.controller.LocatieRestController;
+import com.example.fifa_2026.restControllers.LocatieRestController;
 import com.example.fifa_2026.dto.LocatieDTO;
 import com.example.fifa_2026.service.LocatieService;
+import com.example.fifa_2026.service.WedstrijdService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ class LocatieRestControllerTest {
 
     @MockitoBean
     private LocatieService locatieService;
+
+    @MockitoBean
+    private WedstrijdService wedstrijdService;
 
     @Test
     void getById_returnsLocatieDTO() throws Exception {
