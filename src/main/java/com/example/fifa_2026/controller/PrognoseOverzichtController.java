@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Clock;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/prognoses")
@@ -14,6 +16,7 @@ public class PrognoseOverzichtController {
 
     private final PrognoseService prognoseService;
     private final CurrentUserService currentUserService;
+    private final Clock clock;
 
     /** Laadt eigen voorspellingen en berekent per voorspelling of de wijzigingsdeadline nog niet verstreken is. */
     @GetMapping
@@ -24,7 +27,7 @@ public class PrognoseOverzichtController {
         model.addAttribute("prognoses", prognoses);
 
         java.util.Map<Long, Boolean> canEditPrognoseMap = new java.util.HashMap<>();
-        var now = java.time.LocalDateTime.now();
+        var now = java.time.LocalDateTime.now(clock);
 
         for (var p : prognoses) {
             var w = p.getWedstrijd();

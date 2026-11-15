@@ -17,6 +17,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +41,7 @@ public class WedstrijdService {
     private final PrognoseRepository prognoseRepository;
     private final GebruikerRepository gebruikerRepository;
     private final MessageSource messageSource;
+    private final Clock clock;
 
     private List<WedstrijdDTO> convertToDTOList(List<Wedstrijd> wedstrijden) {
         return wedstrijden.stream().map(WedstrijdService::naarWedstrijdDTO).toList();
@@ -149,7 +151,7 @@ public class WedstrijdService {
         Wedstrijd w = getWedstrijdEntityOrThrow(wedstrijdId);
         LocalDateTime start = LocalDateTime.of(w.getSpeeldatum(), w.getStarttijd().toLocalTime());
         LocalDateTime earliestAllowed = uitslagVanaf(start);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         if (now.isBefore(earliestAllowed)) {
             throw new ConflictException(
@@ -171,7 +173,6 @@ public class WedstrijdService {
     public void editWedstrijd(long wedstrijdId, WedstrijdEditDTO form) {
 
         Wedstrijd w = getWedstrijdEntityOrThrow(wedstrijdId);
-        LocalDateTime now = LocalDateTime.now();
         String s1 = form.getLand1();
         String s2 = form.getLand2();
         String s3 = form.getSpeeldatum();

@@ -25,12 +25,15 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.sql.Time;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -46,10 +49,12 @@ class TeamEnPrognoseRestTest {
     @MockitoBean private TeamRepository teams;
     @MockitoBean private PrognoseRepository prognoses;
     @MockitoBean private WedstrijdRepository wedstrijden;
+    @MockitoBean private PlatformTransactionManager transacties;
 
     @BeforeEach
     void stelGebruikerIn() {
         when(currentUser.getCurrentGebruikerIdOrThrow()).thenReturn(1L);
+        when(transacties.getTransaction(any())).thenAnswer(invocation -> new SimpleTransactionStatus());
     }
 
     @Test

@@ -10,8 +10,11 @@ import org.mockito.*;
 import org.springframework.ui.Model;
 
 import java.sql.Time;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -23,6 +26,9 @@ class PrognoseOverzichtControllerTest {
 
     @InjectMocks
     PrognoseOverzichtController controller;
+
+    @Spy
+    Clock clock = Clock.fixed(Instant.parse("2026-11-15T11:00:00Z"), ZoneId.of("Europe/Brussels"));
 
     @Mock
     PrognoseService prognoseService;
@@ -52,7 +58,7 @@ class PrognoseOverzichtControllerTest {
     @Test
     void overzicht_addsModelAttributesAndComputesCanEditMap() {
         long gebruikerId = 99L;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         // Maak geldige tijdstrings ("HH:mm:ss"):
         String tijd1 = formatTime(now.plusHours(5));
         String tijd2 = formatTime(now.minusHours(3));

@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WedstrijdRestController {
     private final WedstrijdService wedstrijdService;
+    private final Clock clock;
 
     record WedstrijdDetail(long wedstrijdID, String land1, String land2, String speeldatum,
                            String starttijd, String stadion, String stad, int capaciteit,
@@ -84,7 +86,7 @@ public class WedstrijdRestController {
         var w = wedstrijdService.getWedstrijdEntityOrThrow(id);
         var plaats = w.getLocatie();
         var aftrap = w.getSpeeldatum().atTime(w.getStarttijd().toLocalTime());
-        var nu = LocalDateTime.now();
+        var nu = LocalDateTime.now(clock);
         return new WedstrijdDetail(id, w.getLand1(), w.getLand2(), w.getSpeeldatum().toString(),
                 w.getStarttijd().toString(), plaats.getStadion(), plaats.getStad(), plaats.getCapaciteit(),
                 w.getUitslagLand1(), w.getUitslagLand2(), w.getWinnaar(),

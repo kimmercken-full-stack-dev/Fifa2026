@@ -11,13 +11,18 @@ import com.example.fifa_2026.repository.GebruikerRepository;
 import com.example.fifa_2026.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.Comparator;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.LongFunction;
 
 /**
  * Beheert teams, uitnodigingen en lidmaatschap.
@@ -31,14 +36,19 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final GebruikerRepository gebruikerRepository;
     private final MessageSource messageSource;
+    private final PlatformTransactionManager transactionManager;
 
     /** Sorteert teams op de som van hun ledenscores en geeft maximaal tien overzichts-DTO's terug. */
     @Transactional(readOnly = true)
     public List<TeamsDTO> getTop10Teams() {
-        return teamRepository.findAll().stream()
-                .sorted(Comparator.comparingInt(Team::getScore).reversed())
-                .limit(10)
-                .map(TeamService::naarTeamOverzicht).toList();
+        return teamRepository.findTopTeams(PageRequest.of(0, 10)).stream()
+                .map(t -> new TeamsDTO(
+                        t.getTeamId(),
+                        t.getTeamNaam(),
+                        t.getEigenaar(),
+                        Math.toIntExact(t.getScore()),
+                        Math.toIntExact(t.getAantalLeden())
+                )).toList();
     }
 
     static TeamsDTO naarTeamOverzicht(Team team) {
@@ -101,9 +111,11 @@ public class TeamService {
     }
 
     /** Vervangt de uitnodigingscode nadat is gecontroleerd dat de aanvrager eigenaar is. */
-    @Transactional
     public Long regenerateInvitecode(long teamId, long currentUserId) {
+        return metNieuweUitnodigingscode(code -> vernieuwUitnodigingscode(teamId, currentUserId, code));
+    }
 
+    private Long vernieuwUitnodigingscode(long teamId, long currentUserId, long newCode) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new NietGevondenException(msg("team.notfound", teamId)));
 
@@ -111,11 +123,12 @@ public class TeamService {
             throw new GeenToegangException(msg("team.noaccess.owner"));
         }
 
-        long newCode = generateUniqueInvitecode();
+        if (team.getInvitecode() == newCode) {
+            return null;
+        }
 
         team.setInvitecode(newCode);
-
-        teamRepository.save(team);
+        teamRepository.saveAndFlush(team);
 
         return newCode;
     }
@@ -145,11 +158,11 @@ public class TeamService {
     }
 
     /** Controleert de teamnaam, genereert een code en maakt de aanvrager zowel eigenaar als lid. */
-    @Transactional
     public Team createTeam(String teamNaam, long currentUserId) {
+        return metNieuweUitnodigingscode(code -> maakTeam(teamNaam.trim(), currentUserId, code));
+    }
 
-        String naam = teamNaam.trim();
-
+    private Team maakTeam(String naam, long currentUserId, long code) {
         if (teamRepository.existsByTeamNaamIgnoreCase(naam)) {
             throw new ConflictException(msg("team.name.exists", naam));
         }
@@ -157,7 +170,7 @@ public class TeamService {
         Gebruiker eigenaar = gebruikerRepository.findById(currentUserId)
                 .orElseThrow(() -> new NietGevondenException(msg("user.notfound", currentUserId)));
 
-        Team team = new Team(naam, generateUniqueInvitecode(), eigenaar);
+        Team team = new Team(naam, code, eigenaar);
 
         team.setEigenaar(eigenaar);
 
@@ -165,7 +178,7 @@ public class TeamService {
         team.getTeamleden().add(eigenaar);
         eigenaar.getTeams().add(team);
 
-        Team saved = teamRepository.save(team);
+        Team saved = teamRepository.saveAndFlush(team);
 
         gebruikerRepository.save(eigenaar);
 
@@ -198,12 +211,25 @@ public class TeamService {
         );
     }
 
-    /** Genereert een achtcijferige code en probeert opnieuw zolang die al in de database voorkomt. */
-    private long generateUniqueInvitecode() {
-        long code;
-        do {
-            code = ThreadLocalRandom.current().nextLong(10_000_000L, 100_000_000L);
-        } while (teamRepository.existsByInvitecode(code));
-        return code;
+    private <T> T metNieuweUitnodigingscode(LongFunction<T> actie) {
+        var transactie = new TransactionTemplate(transactionManager);
+        transactie.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        for (int poging = 0; poging < 5; poging++) {
+            long code = Team.nieuweUitnodigingscode();
+            try {
+                T resultaat = transactie.execute(status -> actie.apply(code));
+                if (resultaat != null) {
+                    return resultaat;
+                }
+            } catch (DataIntegrityViolationException ex) {
+                // De mislukte transactie is teruggedraaid voordat we een nieuwe code proberen.
+                if (!(ex.getMostSpecificCause() instanceof SQLException sql)
+                        || sql.getErrorCode() != 1062) {
+                    throw ex;
+                }
+            }
+        }
+        throw new IllegalStateException(msg("team.invite.generation.failed"));
     }
 }

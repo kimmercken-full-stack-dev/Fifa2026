@@ -17,7 +17,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.sql.Time;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +32,9 @@ class WedstrijdControllerTest {
 
     @InjectMocks
     WedstrijdController controller;
+
+    @Spy
+    Clock clock = Clock.fixed(Instant.parse("2026-11-15T11:00:00Z"), ZoneId.of("Europe/Brussels"));
 
     @Mock
     WedstrijdService wedstrijdService;
@@ -81,8 +87,8 @@ class WedstrijdControllerTest {
     @Test
     void listGuest_addsAllAttributesAndReturnsView() {
         List<WedstrijdDTO> wedstrijden = List.of(
-                maakWedstrijdDTO(1, "NL", "BE", LocalDate.now().plusDays(1), "20:00:00"),
-                maakWedstrijdDTO(2, "DE", "FR", LocalDate.now().minusDays(1), "21:00:00"));
+                maakWedstrijdDTO(1, "NL", "BE", LocalDate.now(clock).plusDays(1), "20:00:00"),
+                maakWedstrijdDTO(2, "DE", "FR", LocalDate.now(clock).minusDays(1), "21:00:00"));
         when(wedstrijdService.getAllWedstrijden()).thenReturn(wedstrijden);
         when(currentUserService.getCurrentGebruikerIdOrThrow()).thenReturn(7L);
         when(prognoseService.getPrognoseMapForGebruiker(7L)).thenReturn(Map.of(1L, maakPrognoseEntity(15, 3, 2)));
@@ -97,7 +103,7 @@ class WedstrijdControllerTest {
     @Test
     void wedstrijdDetail_addsAttributesAndReturnsDetailView() {
         long wedstrijdId = 42L;
-        Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "NL", "BE", LocalDate.now().plusDays(1),
+        Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "NL", "BE", LocalDate.now(clock).plusDays(1),
                 "21:00:00", null, null);
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
         long gebruikerId = 3L;
@@ -153,7 +159,7 @@ class WedstrijdControllerTest {
     void editForm_loadsWedstrijdAndReturnsView() {
         long wedstrijdId = 77L;
         Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "AA", "BB",
-                LocalDate.now(), "20:00:00", 2, 1);
+                LocalDate.now(clock), "20:00:00", 2, 1);
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
         String view = controller.editForm(wedstrijdId, model);
         verify(model).addAttribute("wedstrijd", wedstrijd);
@@ -166,7 +172,7 @@ class WedstrijdControllerTest {
         long wedstrijdId = 12L;
         // Future start, dus now.isBefore(start.plusHours(2)) zal true zijn
         Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "AAA", "BBB",
-                LocalDate.now().plusDays(5), "20:00:00", null, null);
+                LocalDate.now(clock).plusDays(5), "20:00:00", null, null);
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
         when(bindingResult.hasErrors()).thenReturn(true); // Er zijn (dan) errors
         WedstrijdUitslagDTO dto = new WedstrijdUitslagDTO();
@@ -179,7 +185,7 @@ class WedstrijdControllerTest {
     void editSubmit_valid_updateAndRedirect() {
         long wedstrijdId = 13L;
         Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "P", "Q",
-                LocalDate.now().minusDays(5), "20:00:00", 1, 2);
+                LocalDate.now(clock).minusDays(5), "20:00:00", 1, 2);
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
         when(bindingResult.hasErrors()).thenReturn(false);
         WedstrijdUitslagDTO dto = new WedstrijdUitslagDTO();
@@ -194,7 +200,7 @@ class WedstrijdControllerTest {
     void editSubmit_serviceThrowsException_addsEditErrorAndReturnsForm() {
         long wedstrijdId = 14L;
         Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "X", "Y",
-                LocalDate.now().minusDays(2), "20:00:00", 0, 0);
+                LocalDate.now(clock).minusDays(2), "20:00:00", 0, 0);
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
         when(bindingResult.hasErrors()).thenReturn(false);
         WedstrijdUitslagDTO dto = new WedstrijdUitslagDTO();
@@ -218,7 +224,7 @@ class WedstrijdControllerTest {
     void editWedstrijdForm_loadsWedstrijdAndReturnsView() {
         long wedstrijdId = 88L;
         Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "BE", "NL",
-                LocalDate.now().plusDays(2), "20:00:00", null, null);
+                LocalDate.now(clock).plusDays(2), "20:00:00", null, null);
 
         Locatie locatie = new Locatie("Brussel", "Koning Boudewijnstadion", 1000, 50000);
         locatie.setId(9L);
@@ -238,7 +244,7 @@ class WedstrijdControllerTest {
         long wedstrijdId = 91L;
 
         Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "FR", "DE",
-                LocalDate.now().plusDays(1), "21:00:00", null, null);
+                LocalDate.now(clock).plusDays(1), "21:00:00", null, null);
 
         List<Locatie> locaties = List.of(new Locatie("Brussel", "Heysel", 1000, 40000));
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
@@ -257,7 +263,7 @@ class WedstrijdControllerTest {
     @Test
     void editWedstrijdSubmit_valid_updatesAndRedirects() {
         long wedstrijdId = 92L;
-        Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "ES", "PT", LocalDate.now().plusDays(3),
+        Wedstrijd wedstrijd = maakWedstrijdEntity(wedstrijdId, "ES", "PT", LocalDate.now(clock).plusDays(3),
                 "18:00:00", null, null);
 
         when(wedstrijdService.getWedstrijdEntityOrThrow(wedstrijdId)).thenReturn(wedstrijd);
