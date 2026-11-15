@@ -28,7 +28,9 @@ Browser → MVC-controller → Service → Repository → MySQL
               ↓              ↓
          Thymeleaf         Domeinmodel
 
-REST-client → REST-controller → Service → DTO → JSON
+Angular in de browser → REST-controller → Service → Repository → MySQL
+                             ↓
+                            JSON
 ```
 
 Controllers verwerken verzoeken en formulieren. Services bevatten onder meer de prognosedeadline, eigenaarscontroles en scoreberekening. Repositories verzorgen de databasebenadering. DTO's scheiden formulier- en responsgegevens van JPA-entiteiten.
@@ -39,6 +41,10 @@ Controllers verwerken verzoeken en formulieren. Services bevatten onder meer de 
 | --- | --- | --- |
 | `LocatieRestController` | `/locaties/{id}/capaciteit` | Geeft het locatie-ID en de stadioncapaciteit terug als JSON. Dit endpoint was een vereiste van de opdracht en wordt via WebClient aangeroepen vanuit de wedstrijddetailpagina. |
 | `WedstrijdRestController` | `/wedstrijden/{speeldatum}` | Geeft de wedstrijden voor een speeldatum terug als JSON. Accepteert `yyyy-MM-dd` en `dd-MM-yyyy`; een ongeldige datum geeft HTTP 400. |
+| `WedstrijdRestController` | `/api/wedstrijden` | Openbaar wedstrijdoverzicht voor Angular, optioneel gefilterd met `?speeldatum=2026-06-10`. |
+| `GebruikerRestController` | `/api/profiel` | Geeft het eigen profiel en de rol van de ingelogde gebruiker terug. |
+| `TeamRestController` | `/api/teams`, `/api/mijn-teams` | Geeft de openbare top 10 of de teams van de ingelogde gebruiker terug. |
+| `PrognoseRestController` | `/api/prognoses` | Geeft de prognoses van de ingelogde gebruiker terug. |
 
 Uitleg over de werking staat rechtstreeks bij de relevante klassen en methoden in de code.
 
@@ -81,6 +87,18 @@ Op macOS/Linux: `sh mvnw spring-boot:run`.
 De oorspronkelijke Windows-wrapper kan op sommige systemen `Cannot index into a null array` melden. Gebruik dan een geinstalleerde Maven met bovenstaande `mvn`-opdracht. Het oorspronkelijke script is behouden.
 
 Open [http://localhost:8080/wedstrijd](http://localhost:8080/wedstrijd).
+
+### Angular-frontend
+
+Je kunt dezelfde Spring Boot-backend ook gebruiken met de Angular-frontend. Laat Spring Boot op poort 8080 draaien en open een tweede terminal in de projectmap:
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd start
+```
+
+Open de [Angular-app](http://localhost:4200/). Het wedstrijdoverzicht is openbaar. Voor je profiel, teams en prognoses kun je je aanmelden met een van de demoaccounts hieronder. De lokale Angular-proxy stuurt verzoeken naar `/api` door naar Spring Boot. Zie de [README van de frontend](frontend/README.md) voor de build- en testopdrachten.
 
 ### Demoaccounts
 
