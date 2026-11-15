@@ -1,0 +1,27 @@
+<h3>{{ 'Jouw prognose' | vertaal }}</h3>
+@if (prognose(); as eigen) {
+  @if (eigen.uitslagLand1 != null && eigen.uitslagLand2 != null) {
+    <p>{{ eigen.uitslagLand1 }} – {{ eigen.uitslagLand2 }}</p>
+  } @else {
+    <p>{{ 'Er is nog geen prognose voor deze wedstrijd().' | vertaal }}</p>
+  }
+  @if (wedstrijd().magVoorspellen) {
+    <p>{{ 'Je kunt je prognose aanpassen tot één uur voor de aftrap.' | vertaal }}</p>
+    <form (submit)="$event.preventDefault(); bewaarPrognose(wedstrijd().wedstrijdID,
+             { uitslagLand1: land1.valueAsNumber, uitslagLand2: land2.valueAsNumber })">
+      <div class="row">
+        <label for="prognose-land1">{{ wedstrijd().land1 }}</label>
+        <input #land1 id="prognose-land1" type="number" required min="0" max="99" [value]="eigen.uitslagLand1 ?? ''">
+      </div>
+      <div class="row">
+        <label for="prognose-land2">{{ wedstrijd().land2 }}</label>
+        <input #land2 id="prognose-land2" type="number" required min="0" max="99" [value]="eigen.uitslagLand2 ?? ''">
+      </div>
+      <button class="btn" type="submit" [disabled]="bezig()">{{ 'Opslaan' | vertaal }}</button>
+    </form>
+  } @else {
+    <p>{{ 'De deadline voor voorspellingen is verstreken.' | vertaal }}</p>
+  }
+}
+@if (fout()) { <p class="error" role="alert">{{ fout() | vertaal }}</p> }
+@if (prognoseOpgeslagen()) { <p role="status">{{ 'Prognose opgeslagen.' | vertaal }}</p> }

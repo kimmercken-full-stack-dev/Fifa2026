@@ -1,0 +1,86 @@
+<header class="hoofd"><h1>{{ titel | vertaal }}</h1></header>
+@if (fout()) { <p role="alert">{{ fout() | vertaal }}</p> }
+@if (soort === 'teams' || soort === 'mijn-teams') {
+  <div class="tabel-scroll"><table>
+    <thead><tr>
+      @if (soort === 'teams') { <th scope="col">{{ 'Positie' | vertaal }}</th> }
+      <th scope="col">{{ 'Teamnaam' | vertaal }}</th>
+      <th scope="col">{{ 'Eigenaar' | vertaal }}</th>
+      @if (soort === 'teams') { <th scope="col">{{ 'Aantal leden' | vertaal }}</th> }
+      <th scope="col">{{ 'Totale score' | vertaal }}</th>
+      @if (soort === 'mijn-teams') { <th scope="col">{{ 'Acties' | vertaal }}</th> }
+    </tr></thead>
+    <tbody>
+      @for (rij of teams(); track rij.teamId) {
+        <tr>
+          @if (soort === 'teams') { <td>{{ $index + 1 }}</td> }
+          <td>{{ rij.teamNaam }}</td>
+          <td>{{ rij.eigenaar }}</td>
+          @if (soort === 'teams') { <td>{{ rij.aantalLeden }}</td> }
+          <td>{{ rij.score }}</td>
+          @if (soort === 'mijn-teams') {
+            <td><div class="actions">
+              <a class="btn-bekijk" [routerLink]="['/teams', rij.teamId]">{{ 'Bekijk' | vertaal }}</a>
+              @if (profiel()?.username === rij.eigenaar) {
+                <form class="team-verwijderen" (submit)="$event.preventDefault(); actie('DELETE', '/teams/' + rij.teamId)">
+                  <button class="btn-danger" type="submit" [disabled]="bezig()">{{ 'Verwijderen' | vertaal }}</button>
+                </form>
+              }
+            </div></td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table></div>
+}
+@if (soort === 'mijn-teams') {
+  <div class="card-row">
+    <section class="card">
+      <h3>{{ 'Team aanmaken' | vertaal }}</h3>
+      <form (submit)="$event.preventDefault(); actie('POST', '/teams', undefined, { teamNaam: naam.value })">
+        <input #naam required [attr.aria-label]="'Teamnaam' | vertaal" [placeholder]="'Teamnaam' | vertaal">
+        <button class="btn" type="submit" [disabled]="bezig()">{{ 'Team aanmaken' | vertaal }}</button>
+      </form>
+    </section>
+    <section class="card">
+      <h3>{{ 'Aansluiten met code' | vertaal }}</h3>
+      <form (submit)="$event.preventDefault(); actie('POST', '/teams/join', undefined, { code: code.valueAsNumber })">
+        <input #code type="number" min="10000000" max="99999999" required
+               [attr.aria-label]="'Uitnodigingscode' | vertaal" [placeholder]="'Uitnodigingscode' | vertaal">
+        <button class="btn" type="submit" [disabled]="bezig()">{{ 'Aansluiten' | vertaal }}</button>
+      </form>
+    </section>
+  </div>
+}
+@if (team(); as gegevens) {
+<section class="card">
+  <h2>{{ gegevens.teamNaam }}</h2>
+  <p><a [routerLink]="['/teams', id, 'klassement']">{{ 'Klassement' | vertaal }}</a></p>
+  @if (gegevens.eigenaar) {
+    <p>{{ 'Uitnodigingscode' | vertaal }}: {{ gegevens.invitecode }}</p>
+    <button class="btn" type="button" [disabled]="bezig()" (click)="actie('POST', '/teams/' + id + '/invite')">{{ 'Vernieuw code' | vertaal }}</button>
+    <button class="btn" type="button" [disabled]="bezig()" (click)="actie('DELETE', '/teams/' + id, '/mijn-teams')">{{ 'Verwijder team' | vertaal }}</button>
+  }
+  <ul>
+    @for (lid of gegevens.leden; track lid.id) {
+      <li>{{ lid.username }} · {{ lid.score }} {{ 'punten' | vertaal }}
+        @if (gegevens.eigenaar && !lid.eigenaar) {
+          <button class="btn" type="button" [disabled]="bezig()" (click)="actie('DELETE', '/teams/' + id + '/leden/' + lid.id)">{{ 'Verwijder lid' | vertaal }}</button>
+        }
+      </li>
+    }
+  </ul>
+</section>
+}
+@if (klassement(); as gegevens) {
+  <h2>{{ gegevens.teamNaam }} · {{ gegevens.teamScore }} {{ 'punten' | vertaal }}</h2>
+  <div class="tabel-scroll"><table>
+    <thead><tr><th scope="col">{{ 'Positie' | vertaal }}</th>
+      <th scope="col">{{ 'Gebruikersnaam' | vertaal }}</th><th scope="col">{{ 'Score' | vertaal }}</th></tr></thead>
+    <tbody>
+      @for (lid of gegevens.leden; track lid.positie) {
+        <tr><td>{{ lid.positie }}</td><td>{{ lid.nickname }}</td><td>{{ lid.score }}</td></tr>
+      }
+    </tbody>
+  </table></div>
+}

@@ -1,13 +1,14 @@
 package com.example.fifa_2026.restController;
 
-import com.example.fifa_2026.controller.WedstrijdRestController;
+import com.example.fifa_2026.config.SecurityConfig;
+import com.example.fifa_2026.restControllers.WedstrijdRestController;
 import com.example.fifa_2026.dto.WedstrijdDTO;
 import com.example.fifa_2026.service.WedstrijdService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,11 +17,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(WedstrijdRestController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import(SecurityConfig.class)
 class WedstrijdRestControllerTest {
 
     @Autowired
@@ -28,6 +30,48 @@ class WedstrijdRestControllerTest {
 
     @MockitoBean
     private WedstrijdService wedstrijdService;
+
+    @Test
+    void apiOverzichtIsOpenbaar() throws Exception {
+        Mockito.when(wedstrijdService.getAllWedstrijden()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/wedstrijden"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        Mockito.verify(wedstrijdService).getAllWedstrijden();
+    }
+
+    @Test
+    void apiOverzichtFiltertOpSpeeldatum() throws Exception {
+        LocalDate datum = LocalDate.of(2026, 6, 10);
+        Mockito.when(wedstrijdService.getWedstrijdenVoorDatum(datum)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/wedstrijden").param("speeldatum", "2026-06-10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+        Mockito.verify(wedstrijdService).getWedstrijdenVoorDatum(datum);
+    }
+
+    @Test
+    void apiOverzichtGeeft400BijOngeldigeDatum() throws Exception {
+        mockMvc.perform(get("/api/wedstrijden").param("speeldatum", "ongeldig"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    void apiWedstrijddetailVereistAanmelding() throws Exception {
+        mockMvc.perform(get("/api/wedstrijden/42"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void apiWedstrijdbeheerVereistAdminrol() throws Exception {
+        mockMvc.perform(get("/api/beheer/wedstrijden/42").with(user("supporter")))
+                .andExpect(status().isForbidden());
+    }
 
     @Test
     void getBySpeeldatum_ReturnsListOfWedstrijdDTO() throws Exception {

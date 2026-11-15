@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,7 @@ class VerschillendeLandenValidatorTest {
         WedstrijdCreateDTO dto = WedstrijdBuilderDTO.builder()
                 .land1("Nederland")
                 .land2("Duitsland")
+                .datum(LocalDate.now().plusDays(1))
                 .build()
                 .toDTO();
 
@@ -37,6 +39,7 @@ class VerschillendeLandenValidatorTest {
         WedstrijdCreateDTO dto = WedstrijdBuilderDTO.builder()
                 .land1("Nederland")
                 .land2("Nederland")
+                .datum(LocalDate.now().plusDays(1))
                 .build()
                 .toDTO();
 

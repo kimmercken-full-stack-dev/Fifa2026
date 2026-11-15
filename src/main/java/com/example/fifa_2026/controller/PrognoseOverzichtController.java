@@ -29,7 +29,7 @@ public class PrognoseOverzichtController {
         for (var p : prognoses) {
             var w = p.getWedstrijd();
             var start = java.time.LocalDateTime.of(w.getSpeeldatum(), w.getStarttijd().toLocalTime());
-            var deadline = start.minusHours(1);
+            var deadline = PrognoseService.prognoseDeadline(start);
             canEditPrognoseMap.put(p.getId(), now.isBefore(deadline));
         }
 
