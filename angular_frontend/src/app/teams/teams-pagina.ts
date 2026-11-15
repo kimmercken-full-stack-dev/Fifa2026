@@ -6,10 +6,9 @@ import { GebruikersService } from '../gebruikers/gebruikers.service';
 import type { Profiel } from '../gebruikers/profiel';
 
 type Team = { teamId: number; teamNaam: string; eigenaar: string; score: number; aantalLeden: number };
-type Lid = { id: number; username: string; score: number; eigenaar: boolean };
-type TeamDetail = { teamNaam: string; eigenaar: boolean; invitecode: number | null; leden: Lid[] };
-type Klassement = { teamNaam: string; teamScore: number;
-  leden: { positie: number; nickname: string; score: number }[] };
+type Lid = { positie: number; gebruikerId: number; nickname: string; score: number; eigenaar?: boolean };
+type Klassement = { teamNaam: string; teamScore: number; leden: Lid[] };
+type TeamDetail = Klassement & { eigenaar: boolean; invitecode?: number };
 
 @Component({ imports: [RouterLink, VertaalPipe], templateUrl: './teams-pagina.html' })
 export class TeamsPagina implements OnInit {

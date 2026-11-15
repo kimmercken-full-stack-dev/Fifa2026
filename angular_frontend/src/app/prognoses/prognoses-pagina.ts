@@ -2,16 +2,23 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api, foutmelding } from '../shared/api';
 import { TaalService, VertaalPipe } from '../shared/taal';
+import type { Wedstrijd } from '../wedstrijden/model';
 
-type Prognose = { id: number; wedstrijdId: number; land1: string; land2: string;
-  speeldatum: string; starttijd: string; stad: string; stadion: string; winnaar: string | null;
-  uitslagLand1: number; uitslagLand2: number; wijzigbaar: boolean };
+type PrognoseItem = {
+  id: number;
+  wedstrijd: Wedstrijd;
+  wedstrijdId: number;
+  uitslagLand1: number | null;
+  uitslagLand2: number | null;
+  winnaar?: string;
+  wijzigbaar: boolean;
+};
 
 @Component({ imports: [RouterLink, VertaalPipe], templateUrl: './prognoses-pagina.html' })
 export class PrognosesPagina implements OnInit {
   private readonly api = inject(Api);
   private readonly taal = inject(TaalService);
-  protected readonly prognoses = signal<Prognose[]>([]);
+  protected readonly prognoses = signal<PrognoseItem[]>([]);
   protected readonly fout = signal('');
   protected readonly bezig = signal(false);
 
@@ -20,7 +27,7 @@ export class PrognosesPagina implements OnInit {
   }
 
   private laad(): void {
-    this.api.get<Prognose[]>('/prognoses').subscribe({
+    this.api.get<PrognoseItem[]>('/prognoses').subscribe({
       next: this.prognoses.set,
       error: (error) => this.fout.set(foutmelding(error)),
     });

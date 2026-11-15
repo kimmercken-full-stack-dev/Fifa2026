@@ -1,6 +1,8 @@
 package com.example.fifa_2026.service;
 
 import com.example.fifa_2026.dto.PrognoseFormDTO;
+import com.example.fifa_2026.exception.ConflictException;
+import com.example.fifa_2026.exception.NietGevondenException;
 import com.example.fifa_2026.model.Gebruiker;
 import com.example.fifa_2026.model.Prognose;
 import com.example.fifa_2026.model.Wedstrijd;
@@ -36,7 +38,7 @@ public class PrognoseService {
     public Wedstrijd getWedstrijdOrThrow(Long wedstrijdId) {
 
         return wedstrijdRepository.findById(wedstrijdId)
-                .orElseThrow(() -> new IllegalArgumentException(msg("wedstrijd.notfound", wedstrijdId)));
+                .orElseThrow(() -> new NietGevondenException(msg("wedstrijd.notfound", wedstrijdId)));
     }
 
     public static LocalDateTime prognoseDeadline(LocalDateTime aftrap) {
@@ -62,7 +64,7 @@ public class PrognoseService {
 
         if (!now.isBefore(deadline)) {
 
-            throw new IllegalStateException(msg("prognose.deadline", deadline));
+            throw new ConflictException(msg("prognose.deadline", deadline));
         }
 
         Prognose p = prognoseRepository
@@ -92,14 +94,16 @@ public class PrognoseService {
     public PrognoseFormDTO getPrognoseFormForWedstrijdAndGebruiker(long wedstrijdId, long gebruikerId) {
 
         getWedstrijdOrThrow(wedstrijdId);
+        return naarPrognoseFormulier(wedstrijdId, findByGebruikerAndWedstrijd(gebruikerId, wedstrijdId).orElse(null));
+    }
+
+    private PrognoseFormDTO naarPrognoseFormulier(long wedstrijdId, Prognose prognose) {
         PrognoseFormDTO form = new PrognoseFormDTO();
         form.setWedstrijdId(wedstrijdId);
-        var existing = findByGebruikerAndWedstrijd(gebruikerId, wedstrijdId);
-
-        existing.ifPresent(p -> {
-            form.setUitslagLand1(p.getUitslagLand1());
-            form.setUitslagLand2(p.getUitslagLand2());});
-
+        if (prognose != null) {
+            form.setUitslagLand1(prognose.getUitslagLand1());
+            form.setUitslagLand2(prognose.getUitslagLand2());
+        }
         return form;
     }
 
@@ -112,6 +116,21 @@ public class PrognoseService {
     public List<Prognose> getPrognosesForGebruiker(long gebruikerId) {
 
         return prognoseRepository.findAllByGebruiker_IdOrderByWedstrijd_SpeeldatumAscWedstrijd_StarttijdAsc(gebruikerId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PrognoseFormDTO> getPrognoseOverzicht(long gebruikerId) {
+        var nu = LocalDateTime.now();
+        return getPrognosesForGebruiker(gebruikerId).stream().map(prognose -> {
+            var wedstrijd = prognose.getWedstrijd();
+            var aftrap = wedstrijd.getSpeeldatum().atTime(wedstrijd.getStarttijd().toLocalTime());
+            var dto = naarPrognoseFormulier(wedstrijd.getWedstrijdID(), prognose);
+            dto.setId(prognose.getId());
+            dto.setWedstrijd(WedstrijdService.naarWedstrijdDTO(wedstrijd));
+            dto.setWinnaar(prognose.getWinnaar());
+            dto.setWijzigbaar(nu.isBefore(prognoseDeadline(aftrap)));
+            return dto;
+        }).toList();
     }
 
     /** Indexeert de voorspellingen op wedstrijd-ID voor gebruik in het wedstrijdoverzicht. */
@@ -143,7 +162,7 @@ public class PrognoseService {
     public Gebruiker getGebruikerOrThrow(long gebruikerId) {
 
         return gebruikerRepository.findById(gebruikerId)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NietGevondenException(
                         msg("user.notfound", gebruikerId)));
     }
 
