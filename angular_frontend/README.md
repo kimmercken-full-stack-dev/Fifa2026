@@ -11,7 +11,7 @@ De Angular-frontend van FIFA 2026 gebruikt Angular 22, TypeScript en de REST-API
 
 ## Lokaal starten
 
-Gebruik Node.js 22 vanaf versie 22.22.3, met npm. Start eerst de Spring Boot-backend op poort 8080 volgens de [README van de repository](../README.md#lokaal-starten). Voer daarna vanuit de map `frontend` uit:
+Gebruik Node.js 22 vanaf versie 22.22.3, met npm. Start eerst de Spring Boot-backend op poort 8080 volgens de [README van de repository](../README.md#lokaal-starten). Voer daarna vanuit de map `angular_frontend` uit:
 
 ```powershell
 npm.cmd ci

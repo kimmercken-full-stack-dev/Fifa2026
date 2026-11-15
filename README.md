@@ -93,12 +93,12 @@ Open [http://localhost:8080/wedstrijd](http://localhost:8080/wedstrijd).
 Je kunt dezelfde Spring Boot-backend ook gebruiken met de Angular-frontend. Laat Spring Boot op poort 8080 draaien en open een tweede terminal in de projectmap:
 
 ```powershell
-cd frontend
+cd angular_frontend
 npm.cmd ci
 npm.cmd start
 ```
 
-Open de [Angular-app](http://localhost:4200/). Het wedstrijdoverzicht is openbaar. Voor je profiel, teams en prognoses kun je je aanmelden met een van de demoaccounts hieronder. De lokale Angular-proxy stuurt verzoeken naar `/api` door naar Spring Boot. Zie de [README van de frontend](frontend/README.md) voor de build- en testopdrachten.
+Open de [Angular-app](http://localhost:4200/). Het wedstrijdoverzicht is openbaar. Voor je profiel, teams en prognoses kun je je aanmelden met een van de demoaccounts hieronder. De lokale Angular-proxy stuurt verzoeken naar `/api` door naar Spring Boot. Zie de [README van de frontend](angular_frontend/README.md) voor de build- en testopdrachten.
 
 ### Demoaccounts
 
